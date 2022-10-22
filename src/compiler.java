@@ -6,7 +6,7 @@ import java.util.regex.Pattern;
 @SuppressWarnings({"RawUseOfParameterized", "unchecked"})
 public class compiler {
     static final HashMap<String, String[]> logicDictionary = new HashMap<>();
-    //final char WHITESPACE = ' ';
+   
 
     static {
         logicDictionary.put("add_2", new String[]{"add result var_a var_b", "var_a", "var_b"});
@@ -377,7 +377,7 @@ public class compiler {
 
         public void enter(HashMap<String, Object> node, HashMap<String, Object> parent) {
             switch (type) {
-                case "CallExpression" -> {
+                case "CallExpression" : {
                     HashMap<String, Object> expression = new HashMap<>();
                     expression.put("type", "CallExpression");
                     HashMap<String, Object> callee = new HashMap<>();
@@ -398,7 +398,9 @@ public class compiler {
                         ((ArrayList<Object>) parent.get("_context")).add(expression);
                     }
                 }
-                case "NumberLiteral", "StringLiteral", "CallVariation" ->
+                case "NumberLiteral":
+								case"StringLiteral":
+								case"CallVariation" :
                         ((ArrayList) parent.get("_context")).add(compiler.dic(type, node.get("value"), null, null));
             }
         }
