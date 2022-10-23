@@ -9,7 +9,7 @@ public class compiler {
    
 
     static {
-        logicDictionary.put("add_2", new String[]{"add result var_a var_b", "var_a", "var_b"});
+        logicDictionary.put("add_2", new String[]{"add result a b", "a", "b"});
         logicDictionary.put("add_0", new String[]{"add result "});
     }
 
@@ -330,7 +330,7 @@ public class compiler {
         for (String argument :
                 arguments) {
 
-            code = code.replaceAll(codeSetting[++i], argument);
+            code = code.replaceAll("\s"+codeSetting[++i]+"\s", "\s"+argument+"\s");
         }
 
 
