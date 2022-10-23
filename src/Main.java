@@ -6,12 +6,15 @@ public class Main {
         String code;
         compiler compiler = new compiler();
 
-        code="add(1 2)";
+        code="add()";
         System.out.println(code);
+				
         ArrayList<Object> tokens = compiler.tokenizer( code);
         System.out.println(tokens);
+				
         HashMap<String, Object> ast = compiler.parser(tokens);
         System.out.println(ast);
+				
         HashMap<String, Object> newAst = compiler.transformer(ast);
         System.out.println(newAst);
 

@@ -3,7 +3,7 @@ import java.util.HashMap;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
-@SuppressWarnings({"RawUseOfParameterized", "unchecked"})
+
 public class compiler {
     static final HashMap<String, String[]> logicDictionary = new HashMap<>();
    
@@ -330,7 +330,11 @@ public class compiler {
         for (String argument :
                 arguments) {
 
+<<<<<<< HEAD
+            code = code.replaceAll("\\s"+codeSetting[++i]+"\\s", "\\s"+argument+"\\s");
+=======
             code = code.replaceAll("\s"+codeSetting[++i]+"\s", "\s"+argument+"\s");
+>>>>>>> branch 'master' of https://gitee.com/k88936/mlog.git
         }
 
 
