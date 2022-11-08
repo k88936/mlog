@@ -208,7 +208,6 @@ public class compiler {
             default:
                 throw new Exception(type);
         }
-
         if (methods.exit) {
             methods.exit(node, parent);
         }
@@ -327,16 +326,15 @@ public class compiler {
         String[] codeSetting = logicDictionary.get(name + '_' + arguments.size());
         String code = codeSetting[0];
 
-
         int i = 0;
         for (String argument :
                 arguments) {
 
-
+<<<<<<< HEAD
             code = code.replaceAll("\\s"+codeSetting[++i]+"\\s", "\\s"+argument+"\\s");
-
+=======
             code = code.replaceAll("\s"+codeSetting[++i]+"\s", "\s"+argument+"\s");
-
+>>>>>>> branch 'master' of https://gitee.com/k88936/mlog.git
         }
 
 
@@ -408,7 +406,6 @@ public class compiler {
 								case"StringLiteral":
 								case"CallVariation" :
                         ((ArrayList) parent.get("_context")).add(compiler.dic(type, node.get("value"), null, null));
-                                    break;
             }
         }
 
