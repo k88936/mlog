@@ -1,5 +1,8 @@
+import com.alibaba.fastjson.JSONObject;
+
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
@@ -14,31 +17,127 @@ public class compiler {
     }
 
     int current;
+class node {
+     JSONObject data;
+     compiler.node parent;
+     ArrayList<compiler.node> children = new ArrayList<compiler.node>();
+
+    node(String name, compiler.node parent) {
+        this.parent = parent;
+        data = new JSONObject();
+        data.put("name", name);
+        data.put("children", children);
+
+    }
+
+    compiler.node generate(String name) {
+        compiler.node t = new node(name, this);
+        children.add(t);
+        return t;
+    }
+
+    compiler.node put(String name, Object value) {
+        data.put(name, value);
+        return this;
+    }
+    Object get(String name) {
+        return data.get(name);
+    }
+    String getStringData(String name) {
+        return get(name).toString();
+    }
+
+
+
+    Iterator iterator = new Iterator<compiler.node>() {//返回一个迭代器的对象
+
+        private int cur = -1;//指针
+
+        public boolean hasNext() {//迭代器的方法
+            return cur !=children.size();//a数组末尾指针
+        }
+        public boolean hasChildOfChild() {//迭代器的方法
+            return children.get(cur).children.iterator().hasNext();//a数组末尾指针
+        }
+
+        public compiler.node next() {//迭代器的方法
+            cur++;
+            return children.get(cur);//返回一个元素
+        }
+
+
+    };
+    void addChild(compiler.node child) {
+        children.add(child);
+        child.parent=this;
+    }
+}
+class tree{
+     final String name;
+     compiler.node root;
+
+
+    tree(String name){
+        this.name = name;
+        this.root = new node(name, null);
+    }
+    node generateNode(String name){
+
+        return new node(name, this.root);
+
+    }
+    tree addNode(String name){
+        root.generate(name);
+        return this;
+    }
+    Iterator getIterator(){
+        return root.iterator;
+    }
+}
+
+
+
+
+
+
 
     private static HashMap<String, Object> dic(String type, Object value, ArrayList<Object> params, ArrayList<Object> body) {
         HashMap<String, Object> dic = new HashMap<>();
         dic.put("type", type);
-        if (value != null) dic.put("value", value);
-        if (params != null) dic.put("parems", params);
-        if (body != null) dic.put("body", body);
+        if (value != null) {
+            dic.put("value", value);
+        }
+        if (params != null) {
+            dic.put("parems", params);
+        }
+        if (body != null) {
+            dic.put("body", body);
+
+        }
+
         return dic;
     }
+
+    final String  TOKENS="tokens";
 
     ArrayList<Object> tokenizer(String input) throws Exception {
         int current = 0;
         // Object[] tokens= new Object[]{};
         ArrayList<Object> tokens = new ArrayList<>();
+        tree tokensTree=new tree("tokens");
         while (current < input.length()) {
 
             char character = input.charAt(current);
             if (character == '(') {
                 tokens.add(dic("paren", "("));
 
+                tokensTree.generateNode(TOKENS).put("paren", "(");
                 current++;
                 continue;
             }
             if (character == ')') {
                 tokens.add(dic("paren", ")"));
+                tokensTree.generateNode(TOKENS).put("paren", ")");
 
                 current++;
                 continue;

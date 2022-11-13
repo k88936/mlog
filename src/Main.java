@@ -7,8 +7,12 @@ public class Main {
         compiler compiler = new compiler();
 
         code="add(1 2)";
+
         System.out.println(code);
         ArrayList<Object> tokens = compiler.tokenizer( code);
+
+
+
         System.out.println(tokens);
         HashMap<String, Object> ast = compiler.parser(tokens);
         System.out.println(ast);
