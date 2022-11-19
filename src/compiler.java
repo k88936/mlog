@@ -125,17 +125,32 @@ public class compiler {
         return tokens;
     }
 
-    @SuppressWarnings("RawUseOfParameterized")
-    HashMap<String, Object> parser(@SuppressWarnings("RawUseOfParameterized") ArrayList tokens) throws Exception {
+    final static String PROGRAM= "program";
+    final static String BODY= "body";
+
+
+    final static String NUMBER= "number";
+
+    final static String NUMBER_LITERAL= "NumberLiteral";
+
+    final static String STRING= "string";
+
+    final static String STRING_LITERAL= "StringLiteral";
+
+    final static String NAME= "name";
+
+    final static String CALL_EXPRESSION= "CallExpression";
+
+
+    tree parser(tree tokens) throws Exception {
         current = 0;
+        tree ast = new tree();
+
+        ast.root.putData(TYPE, PROGRAM);
 
 
-        HashMap<String, Object> ast = dic("Program", new ArrayList<>());
-        while (current < tokens.size()) {
-            ArrayList body = (ArrayList) ast.get("body");
-            body.add(walk(tokens));
-            ast.put("body", body);
-
+        while (current < tokens.root.children.size()) {
+            ast.addNode( walk(tokens).putData(TYPE, BODY));
         }
 
         return ast;
@@ -144,53 +159,62 @@ public class compiler {
     }
 
     @SuppressWarnings("RawUseOfParameterized")
-    private HashMap<String, Object> walk(ArrayList tokens) throws Exception {
-
-        HashMap<String, String> token = (HashMap<String, String>) tokens.get(current);
-
-        if (Objects.equals(token.get("type"), "number")) {
-            current++;
-            return dic("NumberLiteral", token.get("value"));
-        }
-        if (Objects.equals(token.get("type"), "string")) {
-            current++;
-            return dic("StringLiteral", token.get("value"));
-        }
-
-        if (Objects.equals(token.get("type"), "name")) {
-
-            HashMap<String, String> tokenWithName = token;
-
-            token = (HashMap<String, String>) tokens.get(++current);
+    private tree.Node walk(tree tokens) throws Exception {
 
 
-            if (Objects.equals(token.get("type"), "paren") & Objects.equals(token.get("value"), "(")) {
+        tree.Node token = tokens.getNode(current);
+        String type= token.getStringData("type");
+        String value= token.getStringData("value");
 
-                HashMap<String, Object> node = dic("CallExpression", tokenWithName.get("value"), new ArrayList<>());
-                token = (HashMap<String, String>) tokens.get(++current);
-
-
-                while ((!Objects.equals(token.get("type"), "paren")) || (
-                        Objects.equals(token.get("type"), "paren")) & !Objects.equals(token.get("value"), ")")) {
-                    ArrayList<Object> parems = (ArrayList<Object>) node.get("parems");
-                    parems.add(walk(tokens));
-                    node.put("parems", parems);
-                    token = (HashMap<String, String>) tokens.get(current);
-
-                }
+        switch (type) {
+            case NUMBER -> {
                 current++;
-                return node;
+                return new tree.Node(TYPE,NUMBER_LITERAL,VALUE,value);
+            }
+            case STRING -> {
+                current++;
+                return new tree.Node(TYPE,STRING_LITERAL,VALUE,value);
+
+            }
+            case  NAME-> {
+
+                tree.Node tokenWithName = token;
+                token=tokens.getNode(++current);
+                if (Objects.equals(token.getStringData("type"), "paren") & Objects.equals(token.getStringData("value"), "("))
 
 
-            } else {
-                return dic("CallVariation", tokenWithName.get("value"));
+                    {
+                        tree.Node node = new tree.Node(TYPE, CALL_EXPRESSION, VALUE, tokenWithName.getStringData(VALUE));
+                        token = tokens.getNode(++current);
+                        //TODO handle this weird condition
+                        while ((!Objects.equals(token.getStringData("type"), "paren")) || (
+                                Objects.equals(token.getStringData("type"), "paren")) & !Objects.equals(token.getStringData("value"), ")")) {
+                            node.addChild(walk(tokens));
+                            token = tokens.getNode(current);
+
+
+
+                        }
+                        current++;
+                        return node;
+                    }else {
+                    return new tree.Node(TYPE,CALL_EXPRESSION,VALUE,tokenWithName.getStringData(VALUE));
+                }
+
+            }
+            default -> {
+                throw new Exception(type);
             }
 
 
+
         }
 
 
-        throw new Exception(token.get("type"));
+
+
+
+
     }
 
     private void traverser(HashMap<String, Object> ast) throws Exception {

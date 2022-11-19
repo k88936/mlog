@@ -12,6 +12,10 @@ public class tree {
         root.addChild(node);
         return this;
     }
+    Node getNode(int index){
+        return root.children.get(index);
+
+    }
     Node newNode(){
         return new Node();
 
@@ -27,21 +31,30 @@ public class tree {
 
             @Override
             public String visit(Node node) {
+
                 level++;
                 StringBuilder sb = new StringBuilder();
+                char[] chs = new char[level*4];
+                for (int i = 0; i < level*4; i++) {
+                    chs[i] = '-';
+                }
+
+
+
+
+
+                sb.append("-{" +"\n");
+
                 for (Node child : node.children) {
 
 
 
-                    sb.append("\n");
+                   // sb.append("\n");
 
-                    {
-                        char[] chs = new char[level];
-                        for (int i = 0; i < level; i++) {
-                            chs[i] = ' ';
-                        }
-                        sb.append(new String(chs));
-                    }
+
+
+                       sb.append(new String(chs));
+
 
                     //sb.append(' ');
 
@@ -53,21 +66,28 @@ public class tree {
                         sb.append(":");
                         sb.append(child.data.get(key));
                         sb.append(';');
-
+                        sb.append("\n");
+                        sb.append(new String(chs));
 
                     }
-
+                   // sb.append("\n");
                     sb.append(visit(child));
                 }
                 level--;
+                 chs = new char[level*4];
+                for (int i = 0; i < level*4; i++) {
+                    chs[i] = '-';
+                }
+                sb.append(new String(chs)+ "-}" +"\n");
                 return sb.toString();
             }
         };
         return visitor.visit(node);
     }
     public String toString() {
-        return this.toString(root);
 
+        return this.toString(new Node().addChild(root));
+//return this.toString(root);
     }
     static class Node {
 
@@ -135,8 +155,10 @@ public class tree {
         }
 
         public Node setParent(Node node) {
+            if (parent != null) {
+                parent.addChild(this);
+            }
 
-            parent.addChild(this);
             return this;
 
         }
@@ -144,30 +166,33 @@ public class tree {
         public String getStringData(String key) {
             return (String) data.get(key);
         }
-        void putData(String key, Object value) {
+        Node putData(String key, Object value) {
             data.put(key,value);
 
+            return this;
         }
-        void putData(String key1, Object value1,String key2, Object value2) {
+        Node putData(String key1, Object value1, String key2, Object value2) {
             data.put(key1,value1);
             data.put(key2,value2);
 
-
+            return this;
         }
-        void putData(String key1, Object value1,String key2, Object value2,String key3,Object value3){
+        Node putData(String key1, Object value1, String key2, Object value2, String key3, Object value3){
             data.put(key1,value1);
             data.put(key2,value2);
             data.put(key3,value3);
-
+            return this;
         }
-        void putData(String key1, Object value1,String key2, Object value2,String key3,Object value3,String key4,Object value4){
+        Node putData(String key1, Object value1, String key2, Object value2, String key3, Object value3, String key4, Object value4){
             data.put(key1,value1);
             data.put(key2,value2);
             data.put(key3,value3);
             data.put(key4,value4);
 
-
+            return this;
         }
+
+
     }
     abstract class visitor {
 

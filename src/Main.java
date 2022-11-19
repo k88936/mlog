@@ -8,7 +8,11 @@ public class Main {
         System.out.println(code);
         tree tokens = compiler.tokenizer( code);
 
-        System.out.println(tokens.toString());
+       // System.out.println(tokens.toString());
+
+        tree ast=compiler.parser( tokens);
+
+        System.out.println("\nAST: \n" + ast);
 
 
 //        System.out.println(tokens);
