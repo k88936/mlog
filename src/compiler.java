@@ -43,7 +43,7 @@ public class compiler {
     final static String VALUE = "value";
 
     final String  TOKENS="tokens";
-
+//TODO  rewrite match segment 
     tree tokenizer(String input) throws Exception {
         int current = 0;
 
@@ -65,6 +65,21 @@ public class compiler {
                 current++;
                 continue;
             }
+ if (character == '{') {
+
+
+                tokens.addNode(new  tree.Node(TYPE,"paren", VALUE,"}"));
+                current++;
+                continue;
+																
+            }
+            if (character == '}') {
+               tokens.addNode(new tree.Node(TYPE,"paren",VALUE, "}"));
+
+                current++;
+                continue;
+            }
+            i
             if (Pattern.compile("\\s").matcher(character + "").find()) {
                 current++;
                 continue;
