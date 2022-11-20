@@ -65,6 +65,21 @@ public class compiler {
                 current++;
                 continue;
             }
+ if (character == '{') {
+
+
+                tokens.addNode(new  tree.Node(TYPE,"paren", VALUE,"}"));
+                current++;
+                continue;
+																
+            }
+            if (character == '}') {
+               tokens.addNode(new tree.Node(TYPE,"paren",VALUE, "}"));
+
+                current++;
+                continue;
+            }
+            i
             if (Pattern.compile("\\s").matcher(character + "").find()) {
                 current++;
                 continue;
