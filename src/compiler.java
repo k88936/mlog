@@ -3,6 +3,10 @@ import java.util.HashMap;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
+//todo translation 
+// todo single operation 
+
+
 
 public class compiler {
     static final HashMap<String, String[]> logicDictionary = new HashMap<>();
@@ -222,8 +226,9 @@ public class compiler {
                 }
             }.walk(ast);
 //
-            currentOperationClass--;
+       //     currentOperationClass--;
 
+				currentOperationClass=8;
         }
 
 
