@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Objects;
 import java.util.regex.Pattern;
@@ -77,7 +78,7 @@ public class compiler {
 //                continue;
             }
 
-            if (Pattern.compile("[\s,]").matcher(character + "").find()) {
+            if (Pattern.compile("[\s,\n]").matcher(character + "").find()) {
                 current++;
                 continue;
             }
@@ -149,7 +150,7 @@ public class compiler {
         OperationSet = new HashMap<>();
         OperationSet.put("*", new String[]{"10","mul"});
         OperationSet.put("+", new String[]{"9","add"});
-        OperationSet.put("=", new String[]{"8","set"});
+        OperationSet.put("=", new String[]{"3","set"});
 
     }
 
@@ -158,6 +159,10 @@ public class compiler {
     * @return
     */
     int currentOperationClass= maxPriority;
+
+
+    //Tree newParser(Tree)
+
     Tree parser(Tree tokens) throws Exception {
         current = 0;
         Tree ast = new Tree();
@@ -174,49 +179,80 @@ public class compiler {
 
 
         //here no current use
-        //OPeration Great
+        //OOperation Great
 
-        Tree.visitor OperatioVisitor = new Tree.visitor() {
 
-            @Override
-            public Object doWithSelf(Tree.Node node) {
-                return null;
-            }
 
-            @Override
-            public Object doWithChild(Tree.Node node) {
-                return null;
-            }
-        };
+
         while ( currentOperationClass > 0 ) {
             current=0;
-           // Tree.Node node;
-            OperatioVisitor.walk(ast.root);
-//            while (current < tokens.root.children.size()) {
-//               walkOperation(tokens);
-//            }
+
+            new Tree.visitor() {
+
+                @Override
+                public Object doWithSelf(Tree.Node node,ArrayList<Object> dataFromChildren) {
+
+                    return null;
+                }
+
+                @Override
+                public Object doWithChild(Tree.Node node, Tree.Node parent) {
+
+                    switch (node.getStringData(TYPE)) {
+//
+                        case OPERATION -> {
+
+
+                            String name = node.getStringData(VALUE);
+
+
+                            if (currentOperationClass == Integer.valueOf(OperationSet.get(name)[0])) {
+                                node.left.setParent(node);
+                                node.right.setParent(node);
+                                node.putData(TYPE, EXPRESSION, VALUE, OperationSet.get(name)[1]);
+                            }
+
+
+
+                        }
+
+                    }
+
+                    return null;
+                }
+            }.walk(ast);
+//
             currentOperationClass--;
 
         }
 
 
-        // expression to function
-        Tree.Node node;
-        while (current < ast.getSize()) {
-            node = ast.getNode(current);
+        new Tree.visitor(){
 
-            current++;
 
-            switch (node.getStringData(TYPE)) {
-                case EXPRESSION -> {
-                    node.putData(TYPE, FUNCTION );
+            @Override
+            public Object doWithSelf(Tree.Node node, ArrayList<Object> dataFromChildren) {
 
+                switch (node.getStringData(TYPE)) {
+                    case EXPRESSION -> {
+                        if (node.singleChild()){
+
+
+                            node.replacedBy(node.getLastChild());
+
+
+                        }
+                       // node.putData(TYPE, FUNCTION);
+                    }
 
                 }
-
-
+                return null;
             }
-        }
+            @Override
+            public Object doWithChild(Tree.Node child, Tree.Node parent) {
+                return null;
+            }
+        }.walk(ast);
 
 
 
@@ -226,51 +262,7 @@ public class compiler {
     }
 
 
-    private Tree.Node walkOperation(Tree ast) {
 
-
-        Tree.Node node;
-        node = ast.getNode(current);
-        current++;
-
-
-        switch (node.getStringData(TYPE)) {
-            case EXPRESSION -> {
-               // node.putData(TYPE, OPERATION);
-            }
-            case OPERATION->{
-
-
-
-
-
-
-
-                String name=node.getStringData(VALUE);
-                if (currentOperationClass==Integer.valueOf(OperationSet.get(name)[0])){
-                    node.left.setParent(node);
-                    node.right.setParent(node);
-                    node.putData(TYPE, EXPRESSION, VALUE, OperationSet.get(name)[1]);
-
-                }
-
-                walkOperation(ast);
-
-            }
-
-
-        }
-
-
-
-
-
-
-
-
-
-        return null;
-    }
 
     final static String EXPRESSION = "expression";// used by compiler
 
@@ -280,7 +272,7 @@ public class compiler {
  */
     private Tree.Node walk(Tree tokens) throws Exception {
 
-        //a awfull design to use parems here
+        //an awful design to use parems here
 
         Tree.Node tokenLeft = tokens.getNode(current);
         String type= tokenLeft.getStringData(TYPE);
@@ -300,7 +292,9 @@ public class compiler {
             case PAREN -> {
                 Tree.Node token = tokenLeft;
                 tokenLeft=tokens.getNode(current-1);
-                if (!(tokenLeft.getStringData(VALUE).matches("if|else|while")) & Objects.equals(token.getStringData(VALUE), "(")) {
+                //because name comes before parn    (tokenLeft.getStringData(VALUE).matches("if|else|while")) &
+                //just check if it is a block
+                if ( Objects.equals(token.getStringData(VALUE), "(")) {
 
                     Tree.Node node = new Tree.Node(TYPE, EXPRESSION, VALUE,getExpressionName(current) );
                     tokenLeft = tokens.getNode(++current);//now is right ...
@@ -312,59 +306,63 @@ public class compiler {
                     }
                     current++;
                     return node;
+                }else {
+                    //deal with code block may use it
+                    return null;
                 }
+
 
             }
 
             case  NAME-> {
 
                 Tree.Node tokenWithName = tokenLeft;
-                tokenLeft=tokens.getNode(++current);
+                tokenLeft = tokens.getNode(++current);
                 //detect if this is a function or variable
 
-                       if (tokenWithName.getStringData(VALUE).matches("if|else|while")){
+                Tree.Node node;
+                if (tokenWithName.getStringData(VALUE).matches("if|else|while")) {
 
-                           Tree.Node node = new Tree.Node(TYPE, CONTROL, VALUE, tokenWithName.getStringData(VALUE));
-
-
-                           node.addChild(walk(tokens));
+                    node = new Tree.Node(TYPE, CONTROL, VALUE, tokenWithName.getStringData(VALUE));
 
 
-                           if (Objects.equals(tokenLeft.getStringData(TYPE), PAREN) & Objects.equals(tokenLeft.getStringData(VALUE), "{")) {
+                    node.addChild(walk(tokens));
+
+                    tokenLeft = tokens.getNode(current);
+                    if (Objects.equals(tokenLeft.getStringData(TYPE), PAREN) & Objects.equals(tokenLeft.getStringData(VALUE), "{")) {
 
 
-                               tokenLeft = tokens.getNode(++current);
+                        tokenLeft = tokens.getNode(++current);
 
-                               while ((!Objects.equals(tokenLeft.getStringData(TYPE), PAREN)) || (
-                                       Objects.equals(tokenLeft.getStringData(TYPE), PAREN)) & !Objects.equals(tokenLeft.getStringData(VALUE), "}")) {
-                                   node.addChild(walk(tokens));
-                                   tokenLeft = tokens.getNode(current);
-                               }
-                               current++;
+                        while ((!Objects.equals(tokenLeft.getStringData(TYPE), PAREN)) || (
+                                Objects.equals(tokenLeft.getStringData(TYPE), PAREN)) & !Objects.equals(tokenLeft.getStringData(VALUE), "}")) {
+                            node.addChild(walk(tokens));
+                            tokenLeft = tokens.getNode(current);
+                        }
+                        current++;
 
-                           }
-                           return node;
+                    }
+                    return node;
 
 
+                } else {
 
-                       }else {
+                    if (Objects.equals(tokenLeft.getStringData(TYPE), PAREN) & Objects.equals(tokenLeft.getStringData(VALUE), "(")) {
+                        node = new Tree.Node(TYPE, FUNCTION, VALUE, tokenWithName.getStringData(VALUE));
 
-                           if (Objects.equals(tokenLeft.getStringData(TYPE), PAREN) & Objects.equals(tokenLeft.getStringData(VALUE), "(")) {
-                               Tree.Node node = new Tree.Node(TYPE, FUNCTION, VALUE, tokenWithName.getStringData(VALUE));
-                               tokenLeft = tokens.getNode(++current);
+                        tokenLeft = tokens.getNode(++current);
 
-                               while ((!Objects.equals(tokenLeft.getStringData(TYPE), PAREN)) || (
-                                       Objects.equals(tokenLeft.getStringData(TYPE), PAREN)) & !Objects.equals(tokenLeft.getStringData(VALUE), ")")) {
-                                   node.addChild(walk(tokens));
-                                   tokenLeft = tokens.getNode(current);
-                               }
-                               current++;
-                               return node;
-                           }else {
-                               return new Tree.Node(TYPE,VARIATION,VALUE,tokenWithName.getStringData(VALUE));
-                           }
-                       }
-
+                        while ((!Objects.equals(tokenLeft.getStringData(TYPE), PAREN)) || (
+                                Objects.equals(tokenLeft.getStringData(TYPE), PAREN)) & !Objects.equals(tokenLeft.getStringData(VALUE), ")")) {
+                            node.addChild(walk(tokens));
+                            tokenLeft = tokens.getNode(current);
+                        }
+                        current++;
+                        return node;
+                    } else {
+                        return new Tree.Node(TYPE, VARIATION, VALUE, tokenWithName.getStringData(VALUE));
+                    }
+                }
 
 
             }
@@ -379,7 +377,7 @@ public class compiler {
 
         }
 
-        return null;
+
 
 
     }

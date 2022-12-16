@@ -41,7 +41,7 @@ public class Tree {
             int level = 0;
 
             @Override
-            public String doWithSelf(Node node) {
+            public String doWithSelf(Node node,ArrayList<Object> dataFromChildren) {
 
                 level++;
                 StringBuilder sb = new StringBuilder();
@@ -82,7 +82,7 @@ public class Tree {
 
                     }
                    // sb.append("\n");
-                    sb.append(doWithSelf(child));
+                    sb.append(doWithSelf(child,null));
                 }
                 level--;
                  chs = new char[level*4];
@@ -94,11 +94,11 @@ public class Tree {
             }
 
             @Override
-            public Object doWithChild(Node node) {
+            public Object doWithChild(Node node,Node parent) {
                 return null;
             }
         };
-        return (String) visitor.doWithSelf(node);
+        return (String) visitor.doWithSelf(node,null);
     }
     public String toString() {
 
@@ -170,6 +170,10 @@ public class Tree {
 
         public Node addChild(Node node) {
 
+            if (node == null) {
+                return this;
+            }
+
 
 
             node.left=this.getLastChild();
@@ -212,17 +216,50 @@ public class Tree {
             return this;
 
         }
+        public Node replacedBy(Node node) {
+
+            node.removeFromParent();
+
+
+            if (left != null) {
+                node.left=this.left;
+            }
+            if (right!= null) {
+                node.right=this.right;
+            }
+
+
+            parent.children.add(parent.children.indexOf(this),node);
+
+            this.removeFromParent();
+
+          //TODO
+
+        //TODO make null function
+            return null;
+        }
+
         public boolean hasChildren(){
             return  children.size() > 0;
         }
+        public boolean singleChild(){
+            return  children.size() == 1;
+        }
         public Object getData(String key) {
-            return data.get(key);
+            //if null then return a String of blank
+
+            return  data.get(key);
         }
         public String getStringData(String key) {
             //char to string
+            if (data.containsKey(key)) {
+                return getData(key).toString();
+            }
+            else {
+                return "\s";
+            }
 
 
-            return  data.get(key).toString();
         }
         Node putData(String key, Object value) {
             data.put(key,value);
@@ -253,22 +290,36 @@ public class Tree {
 
     }
     static abstract class visitor {
-        void walk(Node node){
+        Object walk(Tree tree){
+          return   walk(tree.root);
+
+        }
+        Object walk(Node node){
+            ArrayList<Object> dataFromChildren = new ArrayList<>();
             int i = 0;
+            Node child;
             while (i<node.children.size()){
-                Node child=node.getChild(i);
+
+                child = node.getChild(i);
                 if (child.hasChildren()){
                     walk(child);
                 }
-                doWithChild(child);
+                dataFromChildren.add(doWithChild(child,node));
                 i++;
             }
-            doWithSelf(node);
+
+            return doWithSelf(node,dataFromChildren);
         }
 
 
-        public abstract Object doWithSelf(Node node);
-        public abstract Object doWithChild(Node node);
+//
+        /*
+        @return walk return
+         */
+        public abstract Object doWithSelf(Node self,ArrayList<Object> dataFromChildren);
+        public abstract Object doWithChild(Node child,Node parent);
+
+
     }
 
 

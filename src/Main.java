@@ -3,14 +3,19 @@ public class Main {
         String code;
         compiler compiler = new compiler();
 
-        code="x=(1+1)*2 ";
+//        code="""
+//
+//        """;
+        code="if(){if(y){x=1}} ";
 
         System.out.println(code);
-        Tree tokens = compiler.tokenizer( code);
+        Tree tokens = compiler.tokenizer( code+"\s");
 
        // System.out.println(tokens.toString());
 
+
         Tree ast=compiler.parser( tokens);
+        
 
         System.out.println("\nAST: \n" + ast);
 
