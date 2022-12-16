@@ -222,8 +222,9 @@ public class compiler {
                 }
             }.walk(ast);
 //
-            currentOperationClass--;
+       //     currentOperationClass--;
 
+				currentOperationClass=8;
         }
 
 
