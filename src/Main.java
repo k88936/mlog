@@ -3,14 +3,14 @@ public class Main {
         String code;
         compiler compiler = new compiler();
 
-        code="add(1 add(2) 2)";
+        code="x=(1+1)*2 ";
 
         System.out.println(code);
-        tree tokens = compiler.tokenizer( code);
+        Tree tokens = compiler.tokenizer( code);
 
        // System.out.println(tokens.toString());
 
-        tree ast=compiler.parser( tokens);
+        Tree ast=compiler.parser( tokens);
 
         System.out.println("\nAST: \n" + ast);
 

@@ -1,12 +1,12 @@
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class tree {
+public class Tree {
     static final String CHILDREN = "children";
     Node root= new Node();
 
 
-    tree addNode(Node node){
+    Tree addNode(Node node){
 
 
         root.addChild(node);
@@ -16,10 +16,21 @@ public class tree {
         return root.children.get(index);
 
     }
+    int getSize(){
+        return root.children.size();
+    }
     Node newNode(){
         return new Node();
 
     }
+    void putData(String name, Object object){
+        root.putData(name, object);
+    }
+    void putData(String name1,Object object1,String name2,Object object2){
+        root.putData(name1,object1,name2,object2);
+
+    }
+
     public String toString(Node node ){
 
 
@@ -30,7 +41,7 @@ public class tree {
             int level = 0;
 
             @Override
-            public String visit(Node node) {
+            public String doWithSelf(Node node) {
 
                 level++;
                 StringBuilder sb = new StringBuilder();
@@ -71,7 +82,7 @@ public class tree {
 
                     }
                    // sb.append("\n");
-                    sb.append(visit(child));
+                    sb.append(doWithSelf(child));
                 }
                 level--;
                  chs = new char[level*4];
@@ -81,14 +92,21 @@ public class tree {
                 sb.append(new String(chs)+ "-}" +"\n");
                 return sb.toString();
             }
+
+            @Override
+            public Object doWithChild(Node node) {
+                return null;
+            }
         };
-        return visitor.visit(node);
+        return (String) visitor.doWithSelf(node);
     }
     public String toString() {
 
         return this.toString(new Node().addChild(root));
 //return this.toString(root);
     }
+
+
     static class Node {
 
         Node parent;
@@ -132,6 +150,23 @@ public class tree {
             putData(key1,value1,key2,value2,key3,value3,key4,value4);
 
         }
+        public void removeFromParent(){
+            if (right != null) {
+                this.right.left=this.left;
+            }
+            if (left!= null) {
+                this.left.right=this.right;
+            }
+
+
+            parent.children.remove(this);
+
+            this.parent = null;
+            this.left=null;
+            this.right=null;
+        }
+
+
 
         public Node addChild(Node node) {
 
@@ -153,18 +188,41 @@ public class tree {
             }
             return null;
         }
+        Node getChild(int index) {
+            return children.get(index);
+        }
+        public Node getRight () {
+            return right;
+        }
+        public Node getLeft () {
+            return left;
+        }
+        public Node getParent () {
+            return parent;
+        }
 
         public Node setParent(Node node) {
+
             if (parent != null) {
-                parent.addChild(this);
+                this.removeFromParent();
+
+                node.addChild(this);
             }
 
             return this;
 
         }
-
+        public boolean hasChildren(){
+            return  children.size() > 0;
+        }
+        public Object getData(String key) {
+            return data.get(key);
+        }
         public String getStringData(String key) {
-            return (String) data.get(key);
+            //char to string
+
+
+            return  data.get(key).toString();
         }
         Node putData(String key, Object value) {
             data.put(key,value);
@@ -194,11 +252,25 @@ public class tree {
 
 
     }
-    abstract class visitor {
+    static abstract class visitor {
+        void walk(Node node){
+            int i = 0;
+            while (i<node.children.size()){
+                Node child=node.getChild(i);
+                if (child.hasChildren()){
+                    walk(child);
+                }
+                doWithChild(child);
+                i++;
+            }
+            doWithSelf(node);
+        }
 
 
-
-        public abstract String visit(Node node);
+        public abstract Object doWithSelf(Node node);
+        public abstract Object doWithChild(Node node);
     }
+
+
 
 }
