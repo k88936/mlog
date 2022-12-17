@@ -120,6 +120,7 @@ public class compiler {
             }
 
 
+            //TODO upper litter
             if (Pattern.compile("[a-z]").matcher(character + "").find()) {
 
                 StringBuilder value = new StringBuilder();
@@ -226,10 +227,18 @@ public class compiler {
                 }
             }.walk(ast);
 //
-       //     currentOperationClass--;
+       currentOperationClass--;
 
-				currentOperationClass=8;
+			//
         }
+
+
+
+
+
+
+
+
 
 
         new Tree.visitor(){
