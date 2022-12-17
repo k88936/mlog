@@ -7,7 +7,7 @@ import java.util.regex.Pattern;
 // todo single operation 
 
 
-public class compiler {
+public class Compiler {
     static final HashMap<String, String[]> logicDictionary = new HashMap<>();
     final static String TYPE = "type";
     final static String VALUE = "value";
@@ -37,7 +37,20 @@ public class compiler {
      * @param
      * @return paren opt number string name
      */
-    final static String EXPRESSION = "expression";// used by compiler
+    final static String EXPRESSION = "expression";// used by Compiler
+    final static String CONTROL_PATTERN_SIGN = "[+\\-*/=<>]";
+    final static String CONTROL_PATTERN = "if|else|while|break|continue";
+    final static String RETURN_TYPE = "returnType";
+    final static String DATA_TYPE = "dataType";
+
+
+    //Tree newParser(Tree)
+    static final DataType DATA_OBJECT = DataType.OBJECT;
+    static final DataType DATA_NUMBER = DataType.createDataType();
+    static final DataType DATA_STRING = DataType.createDataType();
+    static final DataType DATA_BOOLEAN = DataType.createDataType();
+    static final DataType DATA_NULL = DataType.createDataType();
+    static final DataType DATA_UNDEFINED = DataType.createDataType();
 
     static {
         logicDictionary.put("add_2", new String[]{"add result a b", "a", "b"});
@@ -49,10 +62,10 @@ public class compiler {
 
 
         OperationSet = new HashMap<>();
-        OperationSet.put("*", new String[]{"10", "mul","double"});
-        OperationSet.put("+", new String[]{"9", "add","double"});
-        OperationSet.put("=", new String[]{"3", "set","double"});
-        OperationSet.put("++", new String[]{"9", "selfAdd","opt-left"});
+        OperationSet.put("*", new String[]{"10", "mul", "double"});
+        OperationSet.put("+", new String[]{"9", "add", "double"});
+        OperationSet.put("=", new String[]{"3", "set", "double"});
+        OperationSet.put("++", new String[]{"9", "selfAdd", "opt-left"});
 
     }
 
@@ -61,9 +74,6 @@ public class compiler {
      * @param
      * @return
      */ int currentOperationClass = maxPriority;
-
-
-    //Tree newParser(Tree)
 
     Tree tokenizer(String input) throws Exception {
         int current = 0;
@@ -74,6 +84,7 @@ public class compiler {
 
             char character = input.charAt(current);
 
+           //System.out.println(character);
             if (Pattern.compile("[(){}]").matcher(String.valueOf(character)).find()) {
 
 
@@ -81,10 +92,10 @@ public class compiler {
                 current++;
                 continue;
             }
-            if (Pattern.compile("[+\\-*/=<>]").matcher(String.valueOf(character)).find()) {
+            if (Pattern.compile(CONTROL_PATTERN_SIGN).matcher(String.valueOf(character)).find()) {
 
                 StringBuilder value = new StringBuilder();
-                while (Pattern.compile("[+\\-*/=<>]").matcher(String.valueOf(character)).find()) {
+                while (Pattern.compile(CONTROL_PATTERN_SIGN).matcher(String.valueOf(character)).find()) {
 
 
                     value.append(character);
@@ -100,7 +111,7 @@ public class compiler {
 //                continue;
             }
 
-            if (Pattern.compile("[\s,\n]").matcher(character + "").find()) {
+            if (Pattern.compile("[\s,\r\n;]").matcher(character + "").find()) {
                 current++;
                 continue;
             }
@@ -142,7 +153,7 @@ public class compiler {
             if (Pattern.compile("[a-z]").matcher(character + "").find()) {
 
                 StringBuilder value = new StringBuilder();
-                while (Pattern.compile("[a-z.]").matcher(character + "").find()) {
+                while (Pattern.compile("[a-z.:]").matcher(character + "").find()) {
 
 
                     value.append(character);
@@ -156,12 +167,49 @@ public class compiler {
             }
 
 
-            throw new Exception("I don't know what this character is: " + character);
+            //throw new Exception("I don't know what this character is: " + character);
 
         }
 
 
         return tokens;
+    }
+    final static String IGNORE = "ignore";
+    Tree preParser(Tree tokens, String part) {
+
+        Tree partOfTokens= new Tree();
+        final boolean[] included = {false};
+        new Tree.visitor() {
+
+            @Override
+            public Object doWithSelf(Tree.Node self, ArrayList<Object> dataFromChildren) {
+                return null;
+            }
+
+            @Override
+            public Object doWithChild(Tree.Node child, Tree.Node parent) {
+                if (NAME.equals(child.getStringData(TYPE))&&child.getStringData(VALUE).endsWith(":")){
+
+                    if (child.getStringData(VALUE).contains(part)&&!included[0]) {
+
+                        included[0] =true;
+
+                        return null;
+                    }else {
+                        included[0] =false;
+                    }
+
+                }
+                if (included[0]) {
+                    partOfTokens.addNode(child);
+
+                }
+
+                return null;
+            }
+        }.visit(tokens);
+
+        return partOfTokens;
     }
 
     Tree parser(Tree tokens) throws Exception {
@@ -226,13 +274,22 @@ public class compiler {
 
                     return null;
                 }
-            }.walk(ast);
+            }.visit(ast);
 //
             currentOperationClass--;
 
             //
         }
 
+
+
+
+
+
+
+
+
+        //here to clear unused
 
         new Tree.visitor() {
 
@@ -241,7 +298,7 @@ public class compiler {
             public Object doWithSelf(Tree.Node node, ArrayList<Object> dataFromChildren) {
 
                 if (EXPRESSION.equals(node.getStringData(TYPE))) {
-                    if (node.singleChild()) {
+                    if (node.singleChild() && (node.getStringData(VALUE).endsWith(IGNORE))) {
 
 
                         node.replacedBy(node.getLastChild());
@@ -257,7 +314,7 @@ public class compiler {
             public Object doWithChild(Tree.Node child, Tree.Node parent) {
                 return null;
             }
-        }.walk(ast);
+        }.visit(ast);
 
 
         return ast;
@@ -319,7 +376,7 @@ public class compiler {
                 //detect if this is a function or variable
 
                 Tree.Node node;
-                if (tokenWithName.getStringData(VALUE).matches("if|else|while")) {
+                if (tokenWithName.getStringData(VALUE).matches(CONTROL_PATTERN)) {
 
                     node = new Tree.Node(TYPE, CONTROL, VALUE, tokenWithName.getStringData(VALUE));
 
@@ -375,11 +432,96 @@ public class compiler {
 
     }
 
-
     private String getExpressionName(int index) {
         return "EXPRESSION_" + index + "_ignore";
     }
 
+    //todo语义分析
+    public Tree semanticParser(Tree ast) {
+
+
+        //todo register the functions
+        new Tree.visitor() {
+
+            @Override
+            public Object doWithSelf(Tree.Node self, ArrayList<Object> dataFromChildren) {
+                return null;
+            }
+
+            @Override
+            public Object doWithChild(Tree.Node child, Tree.Node parent) {
+
+                if (FUNCTION.equals(child.getStringData(TYPE)) && "set".equals(child.getStringData(VALUE))) {
+
+
+
+
+                }
+
+
+
+
+                    return null;
+            }
+        }.visit(ast);
+
+
+        //register variation
+
+        HashMap<String, DataType> variations = new HashMap();
+        new Tree.visitor() {
+
+            @Override
+            public Object doWithSelf(Tree.Node self, ArrayList<Object> dataFromChildren) {
+                return null;
+            }
+
+            @Override
+            public Object doWithChild(Tree.Node child, Tree.Node parent) {
+
+                if (EXPRESSION.equals(child.getStringData(TYPE)) && "set".equals(child.getStringData(VALUE))) {
+                    DataType dataType = DATA_UNDEFINED;
+                    if (FUNCTION.equals(child.getLastChild().getStringData(TYPE))) {
+                        //数据类型
+
+                        dataType = (DataType) child.getLastChild().getData(RETURN_TYPE);
+                    } else if (VARIATION.equals(child.getLastChild().getStringData(TYPE))) {
+                        dataType = (DataType) child.getLastChild().getData(DATA_TYPE);
+                    }
+                    variations.put(child.getFirstChild().getStringData(VALUE), dataType);
+                }
+                return null;
+            }
+        }.visit(ast);
+        new Tree.visitor() {
+
+            @Override
+            public Object doWithSelf(Tree.Node self, ArrayList<Object> dataFromChildren) {
+                return null;
+            }
+
+            @Override
+            public Object doWithChild(Tree.Node child, Tree.Node parent) {
+
+                if (VARIATION.equals(child.getStringData(TYPE))) {
+                    //todo what todo
+                    variations.containsKey(child.getFirstChild().getStringData(VALUE));
+                }
+                return null;
+            }
+        }.visit(ast);
+
+
+        return ast;
+
+
+    }
+
+
+    //todo
+    public void translator() {
+
+    }
 
     //    private void traverser(Tree ast) throws Exception {
 //        traverseNode(ast, null);
@@ -520,6 +662,7 @@ public class compiler {
 //
 //
     String codeGenerator(Tree ast) {
+
         StringBuilder codeBuffer = new StringBuilder();
 
 
@@ -534,9 +677,33 @@ public class compiler {
             public Object doWithChild(Tree.Node child, Tree.Node parent) {
 
 
+                switch (child.getStringData(TYPE)) {
+
+                    case CONTROL -> {
+                        switch (child.getStringData(NAME)) {
+                            case "if", "while" -> {
+
+                            }
+                        }
+                    }
+                    //todo
+                    case FUNCTION -> {
+                        logicDictionary.get("");
+
+                    }
+
+
+                }
+
+
+//                String code = getCode(child.getStringData("name"), arguments);
+//                code = code.replaceAll("result", codeSetting.getStringData("result"));
+//
+//                codeBuffer.append(code).append('\n');
+
                 return null;
             }
-        }.walk(ast);
+        }.visit(ast);
 
         for (Tree.Node codeSetting : ast.root.children) {
 
@@ -616,7 +783,7 @@ public class compiler {
 //                case "NumberLiteral":
 //								case"StringLiteral":
 //								case"CallVariation" :
-//                        ((ArrayList) parent.get("_context")).add(compiler.dic(type, (String) node.get("value"), null, null));
+//                        ((ArrayList) parent.get("_context")).add(Compiler.dic(type, (String) node.get("value"), null, null));
 //            }
 //        }
 //

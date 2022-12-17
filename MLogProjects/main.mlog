@@ -1,0 +1,13 @@
+
+main:
+if(y){
+(s)
+ break(((x)=1))
+ }
+setup:
+
+loop:
+
+func:
+
+proc:

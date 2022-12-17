@@ -151,6 +151,9 @@ public class Tree {
 
         }
         public void removeFromParent(){
+            if (parent == null) {
+                return;
+            }
             if (right != null) {
                 this.right.left=this.left;
             }
@@ -222,26 +225,39 @@ public class Tree {
             return this;
 
         }
+        //exactly copyFrom
         public Node replacedBy(Node node) {
+            this.data=node.data;
+            this.children=node.children;
 
-            node.removeFromParent();
+//            node.removeFromParent();
+//
+//
+//            if (left != null) {
+//                node.left=this.left;
+//            }
+//            if (right!= null) {
+//                node.right=this.right;
+//            }
+//
+//
+//            parent.children.add(parent.children.indexOf(this),node);
+//
+//            this.removeFromParent();
 
 
-            if (left != null) {
-                node.left=this.left;
-            }
-            if (right!= null) {
-                node.right=this.right;
-            }
 
 
-            parent.children.add(parent.children.indexOf(this),node);
 
-            this.removeFromParent();
+
+
+
+
 
           //TODO
 
         //TODO make null function
+
             return null;
         }
 
@@ -331,11 +347,11 @@ public class Tree {
 
     }
     static abstract class visitor {
-        Object walk(Tree tree){
-          return   walk(tree.root);
+        Object visit(Tree tree){
+          return   visit(tree.root);
 
         }
-        Object walk(Node node){
+        Object visit(Node node){
             ArrayList<Object> dataFromChildren = new ArrayList<>();
             int i = 0;
             Node child=node.getFirstChild();
@@ -345,9 +361,10 @@ public class Tree {
 
 
                 if (child.hasChildren()){
-                    walk(child);
+                    visit(child);
                 }
                 dataFromChildren.add(doWithChild(child,node));
+
                child = child.right;
             }
 
@@ -357,6 +374,8 @@ public class Tree {
 
 //
         /*
+
+        @ execute doWithSelf only when hasChildren
         @return walk return
          */
         public abstract Object doWithSelf(Node self,ArrayList<Object> dataFromChildren);
