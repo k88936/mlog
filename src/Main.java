@@ -6,7 +6,7 @@ public class Main {
 //        code="""
 //
 //        """;
-        code="if(){if(y){x=1}} ";
+        code="if(x+2){1=1 y++ if(y){x=1}} ";
 
         System.out.println(code);
         Tree tokens = compiler.tokenizer( code+"\s");

@@ -192,6 +192,12 @@ public class Tree {
             }
             return null;
         }
+        public Node getFirstChild() {
+            if (children.size() > 0) {
+                return children.get(0);
+            }
+            return null;
+        }
         Node getChild(int index) {
             return children.get(index);
         }
@@ -242,6 +248,41 @@ public class Tree {
         public boolean hasChildren(){
             return  children.size() > 0;
         }
+        public boolean hasLeft(){
+            return left!= null;
+        }
+        public boolean hasRight(){
+            return right!= null;
+        }
+        //insert a node before it
+        public Node insertBefore(Node node) {
+            if (node == null) {
+                return this;
+            }
+            if (this.left != null) {
+                this.left.right=node;
+                node.left=this.left;
+            }
+            this.left = node;
+            node.right = this;
+            parent.children.add(node);
+            node.parent = this.parent;
+            return this;
+        }
+        //insert a node after it
+        public Node insertAfter(Node node) {
+            if (node == null) {
+                return this;
+            }
+            if (this.right!= null) {
+                this.right.left=node;
+                node.right=this.right;
+            }
+            this.right = node;
+            node.left = this;
+            return this;
+        }
+
         public boolean singleChild(){
             return  children.size() == 1;
         }
@@ -297,15 +338,17 @@ public class Tree {
         Object walk(Node node){
             ArrayList<Object> dataFromChildren = new ArrayList<>();
             int i = 0;
-            Node child;
-            while (i<node.children.size()){
+            Node child=node.getFirstChild();
 
-                child = node.getChild(i);
+            //&&(child.hasRight()||!child.hasLeft())
+            while (child!=null){
+
+
                 if (child.hasChildren()){
                     walk(child);
                 }
                 dataFromChildren.add(doWithChild(child,node));
-                i++;
+               child = child.right;
             }
 
             return doWithSelf(node,dataFromChildren);

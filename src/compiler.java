@@ -7,51 +7,69 @@ import java.util.regex.Pattern;
 // todo single operation 
 
 
-
 public class compiler {
     static final HashMap<String, String[]> logicDictionary = new HashMap<>();
     final static String TYPE = "type";
     final static String VALUE = "value";
-    final static String  TOKENS="tokens";
-    final static String PAREN="paren";
-    final static String PROGRAM= "program";
-    final static String BODY= "body";
-    final static String NUMBER= "number";
-    final static String NUMBER_LITERAL= "NumberLiteral";
-    final static String STRING= "string";
-    final static String STRING_LITERAL= "StringLiteral";
-    final static String NAME= "name";
-    final static String KEY_WORD= "key word";
-    final static String FUNCTION= "function";
-    final static String VARIATION= "variation";
+    final static String TOKENS = "tokens";
+    final static String PAREN = "paren";
+    final static String PROGRAM = "program";
+    final static String BODY = "body";
+    final static String NUMBER = "number";
+    final static String NUMBER_LITERAL = "NumberLiteral";
+    final static String STRING = "string";
+    final static String STRING_LITERAL = "StringLiteral";
+    final static String NAME = "name";
+    final static String KEY_WORD = "key word";
+    final static String FUNCTION = "function";
+    final static String VARIATION = "variation";
 
     final static String CODE_BLOCK = "code block";
     final static String CONTROL = "control";
     final static String OPERATION = "operation";
-    final static String OBJECT= "object";
+    final static String OBJECT = "object";
 
-    final static String VOID= "void";
+    final static String VOID = "void";
+    final static int maxPriority;
+    final static HashMap<String, String[]> OperationSet;
+
+    /*
+     * @param
+     * @return paren opt number string name
+     */
+    final static String EXPRESSION = "expression";// used by compiler
 
     static {
         logicDictionary.put("add_2", new String[]{"add result a b", "a", "b"});
         logicDictionary.put("add_0", new String[]{"add result "});
     }
 
-    int current;
+    static {
+        maxPriority = 10;
 
+
+        OperationSet = new HashMap<>();
+        OperationSet.put("*", new String[]{"10", "mul","double"});
+        OperationSet.put("+", new String[]{"9", "add","double"});
+        OperationSet.put("=", new String[]{"3", "set","double"});
+        OperationSet.put("++", new String[]{"9", "selfAdd","opt-left"});
+
+    }
+
+    int current;
     /*
      * @param
-     * @return paren opt number string name
-     */
+     * @return
+     */ int currentOperationClass = maxPriority;
 
 
-
+    //Tree newParser(Tree)
 
     Tree tokenizer(String input) throws Exception {
         int current = 0;
 
 
-        Tree tokens=new Tree();
+        Tree tokens = new Tree();
         while (current < input.length()) {
 
             char character = input.charAt(current);
@@ -59,7 +77,7 @@ public class compiler {
             if (Pattern.compile("[(){}]").matcher(String.valueOf(character)).find()) {
 
 
-                tokens.addNode(new  Tree.Node(TYPE,PAREN, VALUE,character));
+                tokens.addNode(new Tree.Node(TYPE, PAREN, VALUE, character));
                 current++;
                 continue;
             }
@@ -75,7 +93,7 @@ public class compiler {
 
                 }
 
-                tokens.addNode(new Tree.Node(TYPE,OPERATION,VALUE,value.toString()));
+                tokens.addNode(new Tree.Node(TYPE, OPERATION, VALUE, value.toString()));
                 continue;
 //                tokens.addNode(new  Tree.Node(TYPE,OPERATION, VALUE,character));
 //                current++;
@@ -101,7 +119,7 @@ public class compiler {
 
                 }
 
-                tokens.addNode(new Tree.Node(TYPE,NUMBER,VALUE,value.toString()));
+                tokens.addNode(new Tree.Node(TYPE, NUMBER, VALUE, value.toString()));
                 continue;
             }
 
@@ -115,11 +133,12 @@ public class compiler {
                     character = input.charAt(++current);
                 }
 
-                tokens.addNode(new Tree.Node(TYPE,STRING, VALUE, value));
+                tokens.addNode(new Tree.Node(TYPE, STRING, VALUE, value));
                 continue;
             }
 
 
+            //TODO upper litter
             if (Pattern.compile("[a-z]").matcher(character + "").find()) {
 
                 StringBuilder value = new StringBuilder();
@@ -132,7 +151,7 @@ public class compiler {
 
                 }
 
-                tokens.addNode(new Tree.Node(TYPE,NAME,VALUE,value.toString()));
+                tokens.addNode(new Tree.Node(TYPE, NAME, VALUE, value.toString()));
                 continue;
             }
 
@@ -144,57 +163,30 @@ public class compiler {
 
         return tokens;
     }
-    final static int maxPriority;
-    final static HashMap<String, String[]> OperationSet;
-
-    static {
-        maxPriority = 10;
-
-
-        OperationSet = new HashMap<>();
-        OperationSet.put("*", new String[]{"10","mul"});
-        OperationSet.put("+", new String[]{"9","add"});
-        OperationSet.put("=", new String[]{"3","set"});
-
-    }
-
-    /*
-    * @param
-    * @return
-    */
-    int currentOperationClass= maxPriority;
-
-
-    //Tree newParser(Tree)
 
     Tree parser(Tree tokens) throws Exception {
         current = 0;
         Tree ast = new Tree();
 
-       // ast.root.putData(TYPE, PROGRAM).putData(TYPE, BODY);
-
+        // ast.root.putData(TYPE, PROGRAM).putData(TYPE, BODY);
 
 
         while (current < tokens.root.children.size()) {
-            ast.addNode( walk(tokens));
+            ast.addNode(walk(tokens));
         }
-
-
 
 
         //here no current use
         //OOperation Great
 
 
-
-
-        while ( currentOperationClass > 0 ) {
-            current=0;
+        while (currentOperationClass > 0) {
+            current = 0;
 
             new Tree.visitor() {
 
                 @Override
-                public Object doWithSelf(Tree.Node node,ArrayList<Object> dataFromChildren) {
+                public Object doWithSelf(Tree.Node node, ArrayList<Object> dataFromChildren) {
 
                     return null;
                 }
@@ -202,57 +194,65 @@ public class compiler {
                 @Override
                 public Object doWithChild(Tree.Node node, Tree.Node parent) {
 
-                    switch (node.getStringData(TYPE)) {
-//
-                        case OPERATION -> {
+                    //
+                    if (OPERATION.equals(node.getStringData(TYPE))) {
+                        String name = node.getStringData(VALUE);
 
 
-                            String name = node.getStringData(VALUE);
+                        if (currentOperationClass == Integer.valueOf(OperationSet.get(name)[0])) {
 
 
-                            if (currentOperationClass == Integer.valueOf(OperationSet.get(name)[0])) {
-                                node.left.setParent(node);
-                                node.right.setParent(node);
-                                node.putData(TYPE, EXPRESSION, VALUE, OperationSet.get(name)[1]);
+                            switch (OperationSet.get(name)[2]) {
+                                case "double" -> {
+                                    node.left.setParent(node);
+                                    node.right.setParent(node);
+
+                                }
+                                case "opt-right" -> {
+
+                                    node.right.setParent(node);
+
+                                }
+                                case "opt-left" -> {
+                                    node.left.setParent(node);
+
+                                }
+
+
                             }
-
-
-
+                            node.putData(TYPE, EXPRESSION, VALUE, OperationSet.get(name)[1]);
                         }
-
                     }
 
                     return null;
                 }
             }.walk(ast);
 //
-       //     currentOperationClass--;
+            currentOperationClass--;
 
-				currentOperationClass=8;
+            //
         }
 
 
-        new Tree.visitor(){
+        new Tree.visitor() {
 
 
             @Override
             public Object doWithSelf(Tree.Node node, ArrayList<Object> dataFromChildren) {
 
-                switch (node.getStringData(TYPE)) {
-                    case EXPRESSION -> {
-                        if (node.singleChild()){
+                if (EXPRESSION.equals(node.getStringData(TYPE))) {
+                    if (node.singleChild()) {
 
 
-                            node.replacedBy(node.getLastChild());
+                        node.replacedBy(node.getLastChild());
 
 
-                        }
-                       // node.putData(TYPE, FUNCTION);
                     }
-
+                    // node.putData(TYPE, FUNCTION);
                 }
                 return null;
             }
+
             @Override
             public Object doWithChild(Tree.Node child, Tree.Node parent) {
                 return null;
@@ -260,58 +260,51 @@ public class compiler {
         }.walk(ast);
 
 
-
         return ast;
 
 
     }
 
-
-
-
-    final static String EXPRESSION = "expression";// used by compiler
-
-/*
-* @param tokens
-* @return numberLiteral StringLiteral FUNCTION Variation ?optMark control
- */
+    /*
+     * @param tokens
+     * @return numberLiteral StringLiteral FUNCTION Variation ?optMark control
+     */
     private Tree.Node walk(Tree tokens) throws Exception {
 
         //an awful design to use parems here
 
         Tree.Node tokenLeft = tokens.getNode(current);
-        String type= tokenLeft.getStringData(TYPE);
-        String value= tokenLeft.getStringData(VALUE);
+        String type = tokenLeft.getStringData(TYPE);
+        String value = tokenLeft.getStringData(VALUE);
 
         switch (type) {
-            case NUMBER,STRING -> {
+            case NUMBER, STRING -> {
                 current++;
-                return new Tree.Node(TYPE,NUMBER_LITERAL,VALUE,value);
+                return new Tree.Node(TYPE, NUMBER_LITERAL, VALUE, value);
             }
             case OPERATION -> {
                 current++;
-                return new Tree.Node(TYPE,OPERATION,VALUE,value);
+                return new Tree.Node(TYPE, OPERATION, VALUE, value);
 
             }
 
             case PAREN -> {
                 Tree.Node token = tokenLeft;
-                tokenLeft=tokens.getNode(current-1);
+                tokenLeft = tokens.getNode(current - 1);
                 //because name comes before parn    (tokenLeft.getStringData(VALUE).matches("if|else|while")) &
                 //just check if it is a block
-                if ( Objects.equals(token.getStringData(VALUE), "(")) {
+                if (Objects.equals(token.getStringData(VALUE), "(")) {
 
-                    Tree.Node node = new Tree.Node(TYPE, EXPRESSION, VALUE,getExpressionName(current) );
+                    Tree.Node node = new Tree.Node(TYPE, EXPRESSION, VALUE, getExpressionName(current));
                     tokenLeft = tokens.getNode(++current);//now is right ...
 
-                    while ((!Objects.equals(tokenLeft.getStringData(TYPE), PAREN)) || (
-                            Objects.equals(tokenLeft.getStringData(TYPE), PAREN)) & !Objects.equals(tokenLeft.getStringData(VALUE), ")")) {
+                    while ((!Objects.equals(tokenLeft.getStringData(TYPE), PAREN)) || (Objects.equals(tokenLeft.getStringData(TYPE), PAREN)) & !Objects.equals(tokenLeft.getStringData(VALUE), ")")) {
                         node.addChild(walk(tokens));
                         tokenLeft = tokens.getNode(current);
                     }
                     current++;
                     return node;
-                }else {
+                } else {
                     //deal with code block may use it
                     return null;
                 }
@@ -319,7 +312,7 @@ public class compiler {
 
             }
 
-            case  NAME-> {
+            case NAME -> {
 
                 Tree.Node tokenWithName = tokenLeft;
                 tokenLeft = tokens.getNode(++current);
@@ -339,8 +332,7 @@ public class compiler {
 
                         tokenLeft = tokens.getNode(++current);
 
-                        while ((!Objects.equals(tokenLeft.getStringData(TYPE), PAREN)) || (
-                                Objects.equals(tokenLeft.getStringData(TYPE), PAREN)) & !Objects.equals(tokenLeft.getStringData(VALUE), "}")) {
+                        while ((!Objects.equals(tokenLeft.getStringData(TYPE), PAREN)) || (Objects.equals(tokenLeft.getStringData(TYPE), PAREN)) & !Objects.equals(tokenLeft.getStringData(VALUE), "}")) {
                             node.addChild(walk(tokens));
                             tokenLeft = tokens.getNode(current);
                         }
@@ -357,8 +349,7 @@ public class compiler {
 
                         tokenLeft = tokens.getNode(++current);
 
-                        while ((!Objects.equals(tokenLeft.getStringData(TYPE), PAREN)) || (
-                                Objects.equals(tokenLeft.getStringData(TYPE), PAREN)) & !Objects.equals(tokenLeft.getStringData(VALUE), ")")) {
+                        while ((!Objects.equals(tokenLeft.getStringData(TYPE), PAREN)) || (Objects.equals(tokenLeft.getStringData(TYPE), PAREN)) & !Objects.equals(tokenLeft.getStringData(VALUE), ")")) {
                             node.addChild(walk(tokens));
                             tokenLeft = tokens.getNode(current);
                         }
@@ -379,10 +370,7 @@ public class compiler {
             }
 
 
-
         }
-
-
 
 
     }
@@ -393,7 +381,7 @@ public class compiler {
     }
 
 
-//    private void traverser(Tree ast) throws Exception {
+    //    private void traverser(Tree ast) throws Exception {
 //        traverseNode(ast, null);
 //
 //    }
@@ -531,42 +519,57 @@ public class compiler {
 //    }
 //
 //
-//    String codeGenerator(Tree ast) {
-//        StringBuilder codeBuffer = new StringBuilder();
-//        for (Tree.Node codeSetting : ast.root.children
-//        ) {
-//
-//            ArrayList<String> arguments = ((ArrayList<String>) codeSetting.getData("arguments"));
-//
-//
-//            String code = getCode(codeSetting.getStringData("name"), arguments);
-//            code = code.replaceAll("result", codeSetting.getStringData("result"));
-//
-//            codeBuffer.append(code).append('\n');
-//
-//
-//        }
-//        return codeBuffer.toString();
-//    }
-//
-//    private String getCode(String name, ArrayList<String> arguments) {
-//
-//        String[] codeSetting = logicDictionary.get(name + '_' + arguments.size());
-//        String code = codeSetting[0];
-//
-//        int i = 0;
-//        for (String argument :
-//                arguments) {
-//
-//
-//            code = code.replaceAll("\\s"+codeSetting[++i]+"\\s", "\\s"+argument+"\\s");
-//
-//        }
-//
-//
-//        return code;
-//    }
-//
+    String codeGenerator(Tree ast) {
+        StringBuilder codeBuffer = new StringBuilder();
+
+
+        new Tree.visitor() {
+
+            @Override
+            public Object doWithSelf(Tree.Node self, ArrayList<Object> dataFromChildren) {
+                return null;
+            }
+
+            @Override
+            public Object doWithChild(Tree.Node child, Tree.Node parent) {
+
+
+                return null;
+            }
+        }.walk(ast);
+
+        for (Tree.Node codeSetting : ast.root.children) {
+
+            ArrayList<String> arguments = ((ArrayList<String>) codeSetting.getData("arguments"));
+
+
+            String code = getCode(codeSetting.getStringData("name"), arguments);
+            code = code.replaceAll("result", codeSetting.getStringData("result"));
+
+            codeBuffer.append(code).append('\n');
+
+
+        }
+        return codeBuffer.toString();
+    }
+
+    private String getCode(String name, ArrayList<String> arguments) {
+
+        String[] codeSetting = logicDictionary.get(name + '_' + arguments.size());
+        String code = codeSetting[0];
+
+        int i = 0;
+        for (String argument : arguments) {
+
+
+            code = code.replaceAll("\\s" + codeSetting[++i] + "\\s", "\\s" + argument + "\\s");
+
+        }
+
+
+        return code;
+    }
+
 
     private String getArgument(int index) {
         return "Argument_" + index + "_ignore";
