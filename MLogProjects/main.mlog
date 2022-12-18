@@ -9,5 +9,9 @@ setup:
 loop:
 
 func:
+Num add(Num a,Num b){
 
-proc:
+return native.add(a,b);
+
+}
+

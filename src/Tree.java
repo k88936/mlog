@@ -9,25 +9,25 @@ public class Tree {
     Tree addNode(Node node){
 
 
-        root.addChild(node);
+        this.root.addChild(node);
         return this;
     }
     Node getNode(int index){
-        return root.children.get(index);
+        return this.root.children.get(index);
 
     }
     int getSize(){
-        return root.children.size();
+        return this.root.children.size();
     }
     Node newNode(){
         return new Node();
 
     }
     void putData(String name, Object object){
-        root.putData(name, object);
+        this.root.putData(name, object);
     }
     void putData(String name1,Object object1,String name2,Object object2){
-        root.putData(name1,object1,name2,object2);
+        this.root.putData(name1,object1,name2,object2);
 
     }
 
@@ -43,10 +43,10 @@ public class Tree {
             @Override
             public String doWithSelf(Node node,ArrayList<Object> dataFromChildren) {
 
-                level++;
+                this.level++;
                 StringBuilder sb = new StringBuilder();
-                char[] chs = new char[level*4];
-                for (int i = 0; i < level*4; i++) {
+                char[] chs = new char[this.level *4];
+                for (int i = 0; i < this.level *4; i++) {
                     chs[i] = '-';
                 }
 
@@ -82,11 +82,11 @@ public class Tree {
 
                     }
                    // sb.append("\n");
-                    sb.append(doWithSelf(child,null));
+                    sb.append(this.doWithSelf(child,null));
                 }
-                level--;
-                 chs = new char[level*4];
-                for (int i = 0; i < level*4; i++) {
+                this.level--;
+                 chs = new char[this.level *4];
+                for (int i = 0; i < this.level *4; i++) {
                     chs[i] = '-';
                 }
                 sb.append(new String(chs)+ "-}" +"\n");
@@ -102,7 +102,7 @@ public class Tree {
     }
     public String toString() {
 
-        return this.toString(new Node().addChild(root));
+        return this.toString(new Node().addChild(this.root));
 //return this.toString(root);
     }
 
@@ -121,48 +121,48 @@ public class Tree {
 
         public Node() {
 
-            data.put(CHILDREN,children);
+            this.data.put(CHILDREN, this.children);
 
         }
         public Node(Node parent) {
-            setParent(parent);
-            data.put(CHILDREN,children);
+            this.setParent(parent);
+            this.data.put(CHILDREN, this.children);
         }
         public Node(String key1,Object value1)
         {
-            data.put(CHILDREN,children);
-            putData(key1,value1);
+            this.data.put(CHILDREN, this.children);
+            this.putData(key1,value1);
 
         }
         public Node(String key1,Object value1,String key2,Object value2)
         {
-            data.put(CHILDREN,children);
-            putData(key1,value1,key2,value2);
+            this.data.put(CHILDREN, this.children);
+            this.putData(key1,value1,key2,value2);
 
         }
         public Node(String key1,Object value1,String key2,Object value2,String key3,Object value3){
-            data.put(CHILDREN,children);
-            putData(key1,value1,key2,value2,key3,value3);
+            this.data.put(CHILDREN, this.children);
+            this.putData(key1,value1,key2,value2,key3,value3);
 
         }
         public Node(String key1,Object value1,String key2,Object value2,String key3,Object value3,String key4,Object value4){
-            data.put(CHILDREN,children);
-            putData(key1,value1,key2,value2,key3,value3,key4,value4);
+            this.data.put(CHILDREN, this.children);
+            this.putData(key1,value1,key2,value2,key3,value3,key4,value4);
 
         }
         public void removeFromParent(){
-            if (parent == null) {
+            if (this.parent == null) {
                 return;
             }
-            if (right != null) {
+            if (this.right != null) {
                 this.right.left=this.left;
             }
-            if (left!= null) {
+            if (this.left != null) {
                 this.left.right=this.right;
             }
 
 
-            parent.children.remove(this);
+            this.parent.children.remove(this);
 
             this.parent = null;
             this.left=null;
@@ -184,39 +184,39 @@ public class Tree {
                 this.getLastChild().right=node;
             }
 
-            children.add(node);
+            this.children.add(node);
             node.parent = this;
 
             return this;
         }
         Node  getLastChild() {
-            if (children.size() > 0) {
-                return children.get(children.size() - 1);
+            if (this.children.size() > 0) {
+                return this.children.get(this.children.size() - 1);
             }
             return null;
         }
         public Node getFirstChild() {
-            if (children.size() > 0) {
-                return children.get(0);
+            if (this.children.size() > 0) {
+                return this.children.get(0);
             }
             return null;
         }
         Node getChild(int index) {
-            return children.get(index);
+            return this.children.get(index);
         }
         public Node getRight () {
-            return right;
+            return this.right;
         }
         public Node getLeft () {
-            return left;
+            return this.left;
         }
         public Node getParent () {
-            return parent;
+            return this.parent;
         }
 
         public Node setParent(Node node) {
 
-            if (parent != null) {
+            if (this.parent != null) {
                 this.removeFromParent();
 
                 node.addChild(this);
@@ -262,13 +262,13 @@ public class Tree {
         }
 
         public boolean hasChildren(){
-            return  children.size() > 0;
+            return this.children.size() > 0;
         }
         public boolean hasLeft(){
-            return left!= null;
+            return this.left != null;
         }
         public boolean hasRight(){
-            return right!= null;
+            return this.right != null;
         }
         //insert a node before it
         public Node insertBefore(Node node) {
@@ -281,7 +281,7 @@ public class Tree {
             }
             this.left = node;
             node.right = this;
-            parent.children.add(node);
+            this.parent.children.add(node);
             node.parent = this.parent;
             return this;
         }
@@ -300,17 +300,17 @@ public class Tree {
         }
 
         public boolean singleChild(){
-            return  children.size() == 1;
+            return this.children.size() == 1;
         }
         public Object getData(String key) {
             //if null then return a String of blank
 
-            return  data.get(key);
+            return this.data.get(key);
         }
         public String getStringData(String key) {
             //char to string
-            if (data.containsKey(key)) {
-                return getData(key).toString();
+            if (this.data.containsKey(key)) {
+                return this.getData(key).toString();
             }
             else {
                 return "\s";
@@ -319,27 +319,27 @@ public class Tree {
 
         }
         Node putData(String key, Object value) {
-            data.put(key,value);
+            this.data.put(key,value);
 
             return this;
         }
         Node putData(String key1, Object value1, String key2, Object value2) {
-            data.put(key1,value1);
-            data.put(key2,value2);
+            this.data.put(key1,value1);
+            this.data.put(key2,value2);
 
             return this;
         }
         Node putData(String key1, Object value1, String key2, Object value2, String key3, Object value3){
-            data.put(key1,value1);
-            data.put(key2,value2);
-            data.put(key3,value3);
+            this.data.put(key1,value1);
+            this.data.put(key2,value2);
+            this.data.put(key3,value3);
             return this;
         }
         Node putData(String key1, Object value1, String key2, Object value2, String key3, Object value3, String key4, Object value4){
-            data.put(key1,value1);
-            data.put(key2,value2);
-            data.put(key3,value3);
-            data.put(key4,value4);
+            this.data.put(key1,value1);
+            this.data.put(key2,value2);
+            this.data.put(key3,value3);
+            this.data.put(key4,value4);
 
             return this;
         }
@@ -348,7 +348,7 @@ public class Tree {
     }
     static abstract class visitor {
         Object visit(Tree tree){
-          return   visit(tree.root);
+          return this.visit(tree.root);
 
         }
         Object visit(Node node){
@@ -361,14 +361,14 @@ public class Tree {
 
 
                 if (child.hasChildren()){
-                    visit(child);
+                    this.visit(child);
                 }
-                dataFromChildren.add(doWithChild(child,node));
+                dataFromChildren.add(this.doWithChild(child,node));
 
                child = child.right;
             }
 
-            return doWithSelf(node,dataFromChildren);
+            return this.doWithSelf(node,dataFromChildren);
         }
 
 

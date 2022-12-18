@@ -4,55 +4,60 @@ import java.util.Objects;
 import java.util.regex.Pattern;
 
 //todo translation 
-// todo single operation 
+
 
 
 public class Compiler {
     static final HashMap<String, String[]> logicDictionary = new HashMap<>();
-    final static String TYPE = "type";
-    final static String VALUE = "value";
+    final static String TREE_TYPE = "type";
+    final static String TREE_VALUE = "value";
     final static String TOKENS = "tokens";
     final static String PAREN = "paren";
-    final static String PROGRAM = "program";
-    final static String BODY = "body";
     final static String NUMBER = "number";
-    final static String NUMBER_LITERAL = "NumberLiteral";
+    final static String AST_TYPE_NUMBER_LITERAL = "NumberLiteral";
     final static String STRING = "string";
-    final static String STRING_LITERAL = "StringLiteral";
-    final static String NAME = "name";
+    final static String AST_TYPE_STRING_LITERAL_ = "StringLiteral";
+    final static String TREE_NAME = "name";
     final static String KEY_WORD = "key word";
-    final static String FUNCTION = "function";
-    final static String VARIATION = "variation";
+    final static String AST_TYPE_FUNCTION = "function";
+    final static String AST_TYPE_VARIATION = "variation";
 
-    final static String CODE_BLOCK = "code block";
-    final static String CONTROL = "control";
-    final static String OPERATION = "operation";
-    final static String OBJECT = "object";
+   // final static String CODE_BLOCK = "code block";
+    final static String AST_TYPE_CONTROL = "control";
+    final static String AST_TYPE_OPERATION = "operation";
+    //final static String OBJECT = "object";
 
-    final static String VOID = "void";
+    //final static String VOID = "void";
     final static int maxPriority;
     final static HashMap<String, String[]> OperationSet;
 
-    /*
-     * @param
-     * @return paren opt number string name
-     */
-    final static String EXPRESSION = "expression";// used by Compiler
+
+    final static String AST_TYPE_EXPRESSION = "expression";// used by Compiler
     final static String CONTROL_PATTERN_SIGN = "[+\\-*/=<>]";
     final static String CONTROL_PATTERN = "if|else|while|break|continue";
-    final static String RETURN_TYPE = "returnType";
-    final static String DATA_TYPE = "dataType";
+    final static String AST_FUNCTION_RETURN_TYPE = "returnType";
+    final static String AST_VARIATION_DATA_TYPE = "dataType";
 
 
-    //Tree newParser(Tree)
-    static final DataType DATA_OBJECT = DataType.OBJECT;
-    static final DataType DATA_NUMBER = DataType.createDataType();
-    static final DataType DATA_STRING = DataType.createDataType();
-    static final DataType DATA_BOOLEAN = DataType.createDataType();
-    static final DataType DATA_NULL = DataType.createDataType();
-    static final DataType DATA_UNDEFINED = DataType.createDataType();
+     static final DataType DATA_UNDEFINED,DATA_ITEM_TYPE,DATA_UNIT,DATA_BLOCK,DATA_STRING,DATA_NUMBER,DATA_OBJECT;
+    static {
+         DATA_OBJECT = DataType.OBJECT;
+         DATA_NUMBER = DataType.createDataType("Num");
+         DATA_STRING = DataType.createDataType("Str");
+         DATA_BLOCK = DataType.createDataType("Block");
+         DATA_UNIT =DataType.createDataType("Unit");
+
+        DATA_ITEM_TYPE = DataType.createDataType("Item");
+
+        DATA_UNDEFINED = DataType.createDataType("Undefined");
+        // final DataType DATA_BOOLEAN = DataType.createDataType();
+        //final DataType DATA_NULL = DataType.createDataType();
+    }
+
+
 
     static {
+
         logicDictionary.put("add_2", new String[]{"add result a b", "a", "b"});
         logicDictionary.put("add_0", new String[]{"add result "});
     }
@@ -88,7 +93,7 @@ public class Compiler {
             if (Pattern.compile("[(){}]").matcher(String.valueOf(character)).find()) {
 
 
-                tokens.addNode(new Tree.Node(TYPE, PAREN, VALUE, character));
+                tokens.addNode(new Tree.Node(TREE_TYPE, PAREN, TREE_VALUE, character));
                 current++;
                 continue;
             }
@@ -104,11 +109,8 @@ public class Compiler {
 
                 }
 
-                tokens.addNode(new Tree.Node(TYPE, OPERATION, VALUE, value.toString()));
+                tokens.addNode(new Tree.Node(TREE_TYPE, AST_TYPE_OPERATION, TREE_VALUE, value.toString()));
                 continue;
-//                tokens.addNode(new  Tree.Node(TYPE,OPERATION, VALUE,character));
-//                current++;
-//                continue;
             }
 
             if (Pattern.compile("[\s,\r\n;]").matcher(character + "").find()) {
@@ -130,7 +132,7 @@ public class Compiler {
 
                 }
 
-                tokens.addNode(new Tree.Node(TYPE, NUMBER, VALUE, value.toString()));
+                tokens.addNode(new Tree.Node(TREE_TYPE, NUMBER, TREE_VALUE, value.toString()));
                 continue;
             }
 
@@ -144,7 +146,7 @@ public class Compiler {
                     character = input.charAt(++current);
                 }
 
-                tokens.addNode(new Tree.Node(TYPE, STRING, VALUE, value));
+                tokens.addNode(new Tree.Node(TREE_TYPE, STRING, TREE_VALUE, value));
                 continue;
             }
 
@@ -162,7 +164,7 @@ public class Compiler {
 
                 }
 
-                tokens.addNode(new Tree.Node(TYPE, NAME, VALUE, value.toString()));
+                tokens.addNode(new Tree.Node(TREE_TYPE, TREE_NAME, TREE_VALUE, value.toString()));
                 continue;
             }
 
@@ -188,9 +190,9 @@ public class Compiler {
 
             @Override
             public Object doWithChild(Tree.Node child, Tree.Node parent) {
-                if (NAME.equals(child.getStringData(TYPE))&&child.getStringData(VALUE).endsWith(":")){
+                if (TREE_NAME.equals(child.getStringData(TREE_TYPE))&&child.getStringData(TREE_VALUE).endsWith(":")){
 
-                    if (child.getStringData(VALUE).contains(part)&&!included[0]) {
+                    if (child.getStringData(TREE_VALUE).contains(part)&&!included[0]) {
 
                         included[0] =true;
 
@@ -212,15 +214,139 @@ public class Compiler {
         return partOfTokens;
     }
 
+    Tree NParser(Tree tokens) throws Exception {
+        current=0;
+        Tree ast = new Tree();
+        while (this.current < tokens.root.children.size()) {
+            ast.addNode(this.NWalk(tokens));
+        }
+
+
+
+
+
+        return null;
+    }
+    private Tree.Node NWalk(Tree tokens) throws Exception {
+
+        //an awful design to use parems here
+
+        Tree.Node tokenLeft = tokens.getNode(this.current);
+        String type = tokenLeft.getStringData(TREE_TYPE);
+        String value = tokenLeft.getStringData(TREE_VALUE);
+
+        switch (type) {
+            case NUMBER, STRING -> {
+                this.current++;
+                return new Tree.Node(TREE_TYPE, AST_TYPE_NUMBER_LITERAL, TREE_VALUE, value);
+            }
+            case AST_TYPE_OPERATION -> {
+                this.current++;
+                return new Tree.Node(TREE_TYPE, AST_TYPE_OPERATION, TREE_VALUE, value);
+
+            }
+
+            case PAREN -> {
+                Tree.Node token = tokenLeft;
+                tokenLeft = tokens.getNode(this.current - 1);
+                //because name comes before paren    (tokenLeft.getStringData(VALUE).matches("if|else|while")) &
+                //just check if it is a block
+                if (Objects.equals(token.getStringData(TREE_VALUE), "(")) {
+
+                    Tree.Node node = new Tree.Node(TREE_TYPE, AST_TYPE_EXPRESSION, TREE_VALUE, this.getExpressionName(this.current));
+                    tokenLeft = tokens.getNode(++this.current);//now is right ...
+
+                    while ((!Objects.equals(tokenLeft.getStringData(TREE_TYPE), PAREN)) || (Objects.equals(tokenLeft.getStringData(TREE_TYPE), PAREN)) & !Objects.equals(tokenLeft.getStringData(TREE_VALUE), ")")) {
+                        node.addChild(this.NWalk(tokens));
+                        tokenLeft = tokens.getNode(this.current);
+                    }
+                    this.current++;
+                    return node;
+                } else {
+                    //deal with code block may use it
+                    return null;
+                }
+
+
+            }
+
+            case TREE_NAME -> {
+
+                Tree.Node tokenWithName = tokenLeft;
+                tokenLeft = tokens.getNode(++this.current);
+
+
+
+                Tree.Node node;
+
+                //is a "if" or "else"
+                if (tokenWithName.getStringData(TREE_VALUE).matches(CONTROL_PATTERN)) {
+
+                    node = new Tree.Node(TREE_TYPE, AST_TYPE_CONTROL, TREE_VALUE, tokenWithName.getStringData(TREE_VALUE));
+
+
+                    node.addChild(this.NWalk(tokens));
+
+                    tokenLeft = tokens.getNode(this.current);
+                    if (Objects.equals(tokenLeft.getStringData(TREE_TYPE), PAREN) & Objects.equals(tokenLeft.getStringData(TREE_VALUE), "{")) {
+
+
+                        tokenLeft = tokens.getNode(++this.current);
+
+                        while ((!Objects.equals(tokenLeft.getStringData(TREE_TYPE), PAREN)) || (Objects.equals(tokenLeft.getStringData(TREE_TYPE), PAREN)) & !Objects.equals(tokenLeft.getStringData(TREE_VALUE), "}")) {
+                            node.addChild(this.NWalk(tokens));
+                            tokenLeft = tokens.getNode(this.current);
+                        }
+                        this.current++;
+
+                    }
+                    return node;
+
+
+                } else {
+
+                    //is a func or var
+                    if (Objects.equals(tokenLeft.getStringData(TREE_TYPE), PAREN) & Objects.equals(tokenLeft.getStringData(TREE_VALUE), "(")) {
+                        node = new Tree.Node(TREE_TYPE, AST_TYPE_FUNCTION, TREE_VALUE, tokenWithName.getStringData(TREE_VALUE));
+
+                        tokenLeft = tokens.getNode(++this.current);
+
+                        while ((!Objects.equals(tokenLeft.getStringData(TREE_TYPE), PAREN)) || (Objects.equals(tokenLeft.getStringData(TREE_TYPE), PAREN)) & !Objects.equals(tokenLeft.getStringData(TREE_VALUE), ")")) {
+                            node.addChild(this.NWalk(tokens));
+                            tokenLeft = tokens.getNode(this.current);
+                        }
+                        this.current++;
+                        return node;
+                    } else {
+                        return new Tree.Node(TREE_TYPE, AST_TYPE_VARIATION, TREE_VALUE, tokenWithName.getStringData(TREE_VALUE));
+                    }
+                }
+
+
+            }
+
+
+            default -> {
+                throw new Exception(type);
+
+            }
+
+
+        }
+
+
+    }
+
+
     Tree parser(Tree tokens) throws Exception {
-        current = 0;
+        this.current = 0;
         Tree ast = new Tree();
 
         // ast.root.putData(TYPE, PROGRAM).putData(TYPE, BODY);
 
 
-        while (current < tokens.root.children.size()) {
-            ast.addNode(walk(tokens));
+        while (this.current < tokens.root.children.size()) {
+            ast.addNode(this.walk(tokens));
         }
 
 
@@ -228,8 +354,8 @@ public class Compiler {
         //OOperation Great
 
 
-        while (currentOperationClass > 0) {
-            current = 0;
+        while (this.currentOperationClass > 0) {
+            this.current = 0;
 
             new Tree.visitor() {
 
@@ -243,11 +369,11 @@ public class Compiler {
                 public Object doWithChild(Tree.Node node, Tree.Node parent) {
 
                     //
-                    if (OPERATION.equals(node.getStringData(TYPE))) {
-                        String name = node.getStringData(VALUE);
+                    if (AST_TYPE_OPERATION.equals(node.getStringData(TREE_TYPE))) {
+                        String name = node.getStringData(TREE_VALUE);
 
 
-                        if (currentOperationClass == Integer.valueOf(OperationSet.get(name)[0])) {
+                        if (Compiler.this.currentOperationClass == Integer.valueOf(OperationSet.get(name)[0])) {
 
 
                             switch (OperationSet.get(name)[2]) {
@@ -268,7 +394,7 @@ public class Compiler {
 
 
                             }
-                            node.putData(TYPE, EXPRESSION, VALUE, OperationSet.get(name)[1]);
+                            node.putData(TREE_TYPE, AST_TYPE_EXPRESSION, TREE_VALUE, OperationSet.get(name)[1]);
                         }
                     }
 
@@ -276,7 +402,7 @@ public class Compiler {
                 }
             }.visit(ast);
 //
-            currentOperationClass--;
+            this.currentOperationClass--;
 
             //
         }
@@ -297,8 +423,8 @@ public class Compiler {
             @Override
             public Object doWithSelf(Tree.Node node, ArrayList<Object> dataFromChildren) {
 
-                if (EXPRESSION.equals(node.getStringData(TYPE))) {
-                    if (node.singleChild() && (node.getStringData(VALUE).endsWith(IGNORE))) {
+                if (AST_TYPE_EXPRESSION.equals(node.getStringData(TREE_TYPE))) {
+                    if (node.singleChild() && (node.getStringData(TREE_VALUE).endsWith(IGNORE))) {
 
 
                         node.replacedBy(node.getLastChild());
@@ -330,36 +456,36 @@ public class Compiler {
 
         //an awful design to use parems here
 
-        Tree.Node tokenLeft = tokens.getNode(current);
-        String type = tokenLeft.getStringData(TYPE);
-        String value = tokenLeft.getStringData(VALUE);
+        Tree.Node tokenLeft = tokens.getNode(this.current);
+        String type = tokenLeft.getStringData(TREE_TYPE);
+        String value = tokenLeft.getStringData(TREE_VALUE);
 
         switch (type) {
             case NUMBER, STRING -> {
-                current++;
-                return new Tree.Node(TYPE, NUMBER_LITERAL, VALUE, value);
+                this.current++;
+                return new Tree.Node(TREE_TYPE, AST_TYPE_NUMBER_LITERAL, TREE_VALUE, value);
             }
-            case OPERATION -> {
-                current++;
-                return new Tree.Node(TYPE, OPERATION, VALUE, value);
+            case AST_TYPE_OPERATION -> {
+                this.current++;
+                return new Tree.Node(TREE_TYPE, AST_TYPE_OPERATION, TREE_VALUE, value);
 
             }
 
             case PAREN -> {
                 Tree.Node token = tokenLeft;
-                tokenLeft = tokens.getNode(current - 1);
-                //because name comes before parn    (tokenLeft.getStringData(VALUE).matches("if|else|while")) &
+                tokenLeft = tokens.getNode(this.current - 1);
+                //because name comes before paren    (tokenLeft.getStringData(VALUE).matches("if|else|while")) &
                 //just check if it is a block
-                if (Objects.equals(token.getStringData(VALUE), "(")) {
+                if (Objects.equals(token.getStringData(TREE_VALUE), "(")) {
 
-                    Tree.Node node = new Tree.Node(TYPE, EXPRESSION, VALUE, getExpressionName(current));
-                    tokenLeft = tokens.getNode(++current);//now is right ...
+                    Tree.Node node = new Tree.Node(TREE_TYPE, AST_TYPE_EXPRESSION, TREE_VALUE, this.getExpressionName(this.current));
+                    tokenLeft = tokens.getNode(++this.current);//now is right ...
 
-                    while ((!Objects.equals(tokenLeft.getStringData(TYPE), PAREN)) || (Objects.equals(tokenLeft.getStringData(TYPE), PAREN)) & !Objects.equals(tokenLeft.getStringData(VALUE), ")")) {
-                        node.addChild(walk(tokens));
-                        tokenLeft = tokens.getNode(current);
+                    while ((!Objects.equals(tokenLeft.getStringData(TREE_TYPE), PAREN)) || (Objects.equals(tokenLeft.getStringData(TREE_TYPE), PAREN)) & !Objects.equals(tokenLeft.getStringData(TREE_VALUE), ")")) {
+                        node.addChild(this.walk(tokens));
+                        tokenLeft = tokens.getNode(this.current);
                     }
-                    current++;
+                    this.current++;
                     return node;
                 } else {
                     //deal with code block may use it
@@ -369,31 +495,34 @@ public class Compiler {
 
             }
 
-            case NAME -> {
+            case TREE_NAME -> {
 
                 Tree.Node tokenWithName = tokenLeft;
-                tokenLeft = tokens.getNode(++current);
-                //detect if this is a function or variable
+                tokenLeft = tokens.getNode(++this.current);
+
+
 
                 Tree.Node node;
-                if (tokenWithName.getStringData(VALUE).matches(CONTROL_PATTERN)) {
 
-                    node = new Tree.Node(TYPE, CONTROL, VALUE, tokenWithName.getStringData(VALUE));
+                //is a "if" or "else"
+                if (tokenWithName.getStringData(TREE_VALUE).matches(CONTROL_PATTERN)) {
 
-
-                    node.addChild(walk(tokens));
-
-                    tokenLeft = tokens.getNode(current);
-                    if (Objects.equals(tokenLeft.getStringData(TYPE), PAREN) & Objects.equals(tokenLeft.getStringData(VALUE), "{")) {
+                    node = new Tree.Node(TREE_TYPE, AST_TYPE_CONTROL, TREE_VALUE, tokenWithName.getStringData(TREE_VALUE));
 
 
-                        tokenLeft = tokens.getNode(++current);
+                    node.addChild(this.walk(tokens));
 
-                        while ((!Objects.equals(tokenLeft.getStringData(TYPE), PAREN)) || (Objects.equals(tokenLeft.getStringData(TYPE), PAREN)) & !Objects.equals(tokenLeft.getStringData(VALUE), "}")) {
-                            node.addChild(walk(tokens));
-                            tokenLeft = tokens.getNode(current);
+                    tokenLeft = tokens.getNode(this.current);
+                    if (Objects.equals(tokenLeft.getStringData(TREE_TYPE), PAREN) & Objects.equals(tokenLeft.getStringData(TREE_VALUE), "{")) {
+
+
+                        tokenLeft = tokens.getNode(++this.current);
+
+                        while ((!Objects.equals(tokenLeft.getStringData(TREE_TYPE), PAREN)) || (Objects.equals(tokenLeft.getStringData(TREE_TYPE), PAREN)) & !Objects.equals(tokenLeft.getStringData(TREE_VALUE), "}")) {
+                            node.addChild(this.walk(tokens));
+                            tokenLeft = tokens.getNode(this.current);
                         }
-                        current++;
+                        this.current++;
 
                     }
                     return node;
@@ -401,19 +530,20 @@ public class Compiler {
 
                 } else {
 
-                    if (Objects.equals(tokenLeft.getStringData(TYPE), PAREN) & Objects.equals(tokenLeft.getStringData(VALUE), "(")) {
-                        node = new Tree.Node(TYPE, FUNCTION, VALUE, tokenWithName.getStringData(VALUE));
+                    //is a func or var
+                    if (Objects.equals(tokenLeft.getStringData(TREE_TYPE), PAREN) & Objects.equals(tokenLeft.getStringData(TREE_VALUE), "(")) {
+                        node = new Tree.Node(TREE_TYPE, AST_TYPE_FUNCTION, TREE_VALUE, tokenWithName.getStringData(TREE_VALUE));
 
-                        tokenLeft = tokens.getNode(++current);
+                        tokenLeft = tokens.getNode(++this.current);
 
-                        while ((!Objects.equals(tokenLeft.getStringData(TYPE), PAREN)) || (Objects.equals(tokenLeft.getStringData(TYPE), PAREN)) & !Objects.equals(tokenLeft.getStringData(VALUE), ")")) {
-                            node.addChild(walk(tokens));
-                            tokenLeft = tokens.getNode(current);
+                        while ((!Objects.equals(tokenLeft.getStringData(TREE_TYPE), PAREN)) || (Objects.equals(tokenLeft.getStringData(TREE_TYPE), PAREN)) & !Objects.equals(tokenLeft.getStringData(TREE_VALUE), ")")) {
+                            node.addChild(this.walk(tokens));
+                            tokenLeft = tokens.getNode(this.current);
                         }
-                        current++;
+                        this.current++;
                         return node;
                     } else {
-                        return new Tree.Node(TYPE, VARIATION, VALUE, tokenWithName.getStringData(VALUE));
+                        return new Tree.Node(TREE_TYPE, AST_TYPE_VARIATION, TREE_VALUE, tokenWithName.getStringData(TREE_VALUE));
                     }
                 }
 
@@ -451,7 +581,7 @@ public class Compiler {
             @Override
             public Object doWithChild(Tree.Node child, Tree.Node parent) {
 
-                if (FUNCTION.equals(child.getStringData(TYPE)) && "set".equals(child.getStringData(VALUE))) {
+                if (AST_TYPE_FUNCTION.equals(child.getStringData(TREE_TYPE)) && "set".equals(child.getStringData(TREE_VALUE))) {
 
 
 
@@ -479,16 +609,16 @@ public class Compiler {
             @Override
             public Object doWithChild(Tree.Node child, Tree.Node parent) {
 
-                if (EXPRESSION.equals(child.getStringData(TYPE)) && "set".equals(child.getStringData(VALUE))) {
+                if (AST_TYPE_EXPRESSION.equals(child.getStringData(TREE_TYPE)) && "set".equals(child.getStringData(TREE_VALUE))) {
                     DataType dataType = DATA_UNDEFINED;
-                    if (FUNCTION.equals(child.getLastChild().getStringData(TYPE))) {
+                    if (AST_TYPE_FUNCTION.equals(child.getLastChild().getStringData(TREE_TYPE))) {
                         //数据类型
 
-                        dataType = (DataType) child.getLastChild().getData(RETURN_TYPE);
-                    } else if (VARIATION.equals(child.getLastChild().getStringData(TYPE))) {
-                        dataType = (DataType) child.getLastChild().getData(DATA_TYPE);
+                        dataType = (DataType) child.getLastChild().getData(AST_FUNCTION_RETURN_TYPE);
+                    } else if (AST_TYPE_VARIATION.equals(child.getLastChild().getStringData(TREE_TYPE))) {
+                        dataType = (DataType) child.getLastChild().getData(AST_VARIATION_DATA_TYPE);
                     }
-                    variations.put(child.getFirstChild().getStringData(VALUE), dataType);
+                    variations.put(child.getFirstChild().getStringData(TREE_VALUE), dataType);
                 }
                 return null;
             }
@@ -503,9 +633,9 @@ public class Compiler {
             @Override
             public Object doWithChild(Tree.Node child, Tree.Node parent) {
 
-                if (VARIATION.equals(child.getStringData(TYPE))) {
+                if (AST_TYPE_VARIATION.equals(child.getStringData(TREE_TYPE))) {
                     //todo what todo
-                    variations.containsKey(child.getFirstChild().getStringData(VALUE));
+                    variations.containsKey(child.getFirstChild().getStringData(TREE_VALUE));
                 }
                 return null;
             }
@@ -518,149 +648,31 @@ public class Compiler {
     }
 
 
-    //todo
+
     public void translator() {
 
     }
 
-    //    private void traverser(Tree ast) throws Exception {
-//        traverseNode(ast, null);
-//
-//    }
-//
-//    private void traverseArray(ArrayList array, HashMap<String, Object> parent) throws Exception {
-//        for (Object child : array) {
-//            traverseNode((HashMap<String, Object>) child, parent);
-//
-//        }
-//    }
-//
-//    private void traverseNode(Tree.node node, Tree parent) throws Exception {
-//        // String methods= (String) node.get("name");
-//        String type = (String) node.get("type");
-//        visitor methods = new visitor(type);
-//        if (methods.enter) {
-//            methods.enter(node, parent);
-//        }
-//        switch (type) {
-//            case "Program":
-//                traverseArray((ArrayList) node.get("body"), node);
-//                break;
-//
-//
-//            case "CallExpression":
-//                traverseArray((ArrayList) node.get("parems"), node);
-//                break;
-//
-//
-//            case "NumberLiteral":
-//            case "StringLiteral":
-//            case "CallVariation":
-//                break;
-//
-//
-//            default:
-//                throw new Exception(type);
-//        }
-//        if (methods.exit) {
-//            methods.exit(node, parent);
-//        }
-//    }
-//
-//
-//
-//   Tree transformer(Tree ast) throws Exception {
-//
-//        Tree newAst = new Tree();
-//        "_context", newAst.get("body");
-//        ast.addNode();
-//        traverser(ast);
-//        return newAst;
-//
-//    }
-//
-//    String argumentDistribute(HashMap<String, Object> node, ArrayList<HashMap<String, Object>> array, int Index) throws Exception {
-//
-//
-//        HashMap<String, Object> unit = new HashMap<>();
-//        int index = Index;
-//        String result = getArgument(Index);
-//        //unit.put()
-//        switch (node.get("type").toString()) {
-//            case "Program":
-//                ArrayList<Object> body = ((ArrayList<Object>) node.get("body"));
-//                for (Object child : body) {
-//
-//
-//                    argumentDistribute(((HashMap<String, Object>) child), array, ++index);
-//
-//
-//                }
-//
-//                break;
-//
-//
-//            //return codeOutput.toString();
-//
-//            case "ExpressionStatement":
-//                //return codeGenerator((HashMap<String, Object>) node.get("expression"),codeOutput,parentIndex) + ";"
-//
-//                argumentDistribute((HashMap<String, Object>) node.get("expression"), array, index);
-//
-//                break;
-//            //return codeGenerator(,codeOutput,Index) + ";";
-//            case "CallExpression":
-//
-//                //code = new StringBuilder(codeGenerator((HashMap<String, Object>) node.get("callee"),codeOutput,parentIndex) + "(");
-//
-//                ArrayList<Object> arguments = ((ArrayList<Object>) node.get("arguments"));
-//                ArrayList<String> argumentList = new ArrayList<>();
-//                if (arguments != null) {
-//                    for (Object child : arguments) {
-//                        argumentList.add(argumentDistribute(((HashMap<String, Object>) child), array, ++index));
-//
-//                        //code.append(codeGenerator(((HashMap<String, Object>) child),codeOutput,parentIndex)).append(" ");
-//
-//                    }
-//                }
-//
-//                if (node.get("callee") != null) {
-//                    unit.put("name", ((HashMap<String, Object>) node.get("callee")).get("name"));
-//                } else {
-//                    unit.put("name", node.get("name"));
-//                }
-//
-//                unit.put("arguments", argumentList);
-//                unit.put("result", result);
-//                array.add(unit);
-//                return result;
-//
-//
-//            case "CallVariation":
-//
-//
-//            case "NumberLiteral":
-//
-//
-//            case "StringLiteral":
-//
-//
-//                return (String) node.get("value");
-//
-//            case "Identifier":
-//
-//                break;
-//            default:
-//                throw new Exception(node.get("type").toString());
-//
-//
-//        }
-//        return null;
-//
-//
-//    }
-//
-//
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    //todo far far
+
     String codeGenerator(Tree ast) {
 
         StringBuilder codeBuffer = new StringBuilder();
@@ -677,17 +689,17 @@ public class Compiler {
             public Object doWithChild(Tree.Node child, Tree.Node parent) {
 
 
-                switch (child.getStringData(TYPE)) {
+                switch (child.getStringData(TREE_TYPE)) {
 
-                    case CONTROL -> {
-                        switch (child.getStringData(NAME)) {
+                    case AST_TYPE_CONTROL -> {
+                        switch (child.getStringData(TREE_NAME)) {
                             case "if", "while" -> {
 
                             }
                         }
                     }
                     //todo
-                    case FUNCTION -> {
+                    case AST_TYPE_FUNCTION -> {
                         logicDictionary.get("");
 
                     }
@@ -695,11 +707,6 @@ public class Compiler {
 
                 }
 
-
-//                String code = getCode(child.getStringData("name"), arguments);
-//                code = code.replaceAll("result", codeSetting.getStringData("result"));
-//
-//                codeBuffer.append(code).append('\n');
 
                 return null;
             }
@@ -710,7 +717,7 @@ public class Compiler {
             ArrayList<String> arguments = ((ArrayList<String>) codeSetting.getData("arguments"));
 
 
-            String code = getCode(codeSetting.getStringData("name"), arguments);
+            String code = this.getCode(codeSetting.getStringData("name"), arguments);
             code = code.replaceAll("result", codeSetting.getStringData("result"));
 
             codeBuffer.append(code).append('\n');
@@ -742,53 +749,4 @@ public class Compiler {
         return "Argument_" + index + "_ignore";
     }
 
-//
-//
-//    private static class visitor {
-//        final String type;
-//        final boolean enter;
-//
-//        boolean exit;
-//
-//        visitor(String type) {
-//            this.type = type;
-//            enter = true;
-//            exit = false;
-//        }
-//
-//
-//        public void enter(HashMap<String, Object> node, Tree parent) {
-//            switch (type) {
-//                case "CallExpression" : {
-//                    HashMap<String, Object> expression = new HashMap<>();
-//                    expression.put("type", "CallExpression");
-//                    HashMap<String, Object> callee = new HashMap<>();
-//                    callee.put("type", "Identifier");
-//                    callee.put("name", node.get("value"));
-//                    expression.put("callee", callee);
-//                    expression.put("arguments", new ArrayList<>());
-//                    node.put("_context", expression.get("arguments"));
-//                    if (parent.get("type") != "CallExpression") {
-//
-//                        HashMap<String, Object> expression2 = new HashMap<>();
-//                        expression2.put("type", "ExpressionStatement");
-//                        expression2.put("expression", expression);
-//
-//                        ((ArrayList<Object>) parent.get("_context")).add(expression2);
-//                    } else {
-//
-//                        ((ArrayList<Object>) parent.get("_context")).add(expression);
-//                    }
-//                }
-//                case "NumberLiteral":
-//								case"StringLiteral":
-//								case"CallVariation" :
-//                        ((ArrayList) parent.get("_context")).add(Compiler.dic(type, (String) node.get("value"), null, null));
-//            }
-//        }
-//
-//        @SuppressWarnings("EmptyMethod")
-//        public void exit(HashMap<String, Object> node, HashMap<String, Object> parent) {
-//        }
-//    }
 }

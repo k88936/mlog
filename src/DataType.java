@@ -1,10 +1,13 @@
 public class DataType {
-    static final DataType OBJECT = new DataType();
+    static final DataType OBJECT = new DataType("Obj");
+    public final String name;
     DataType father=OBJECT;
-    public static DataType createDataType(){
-        return new DataType().setFather(OBJECT);
+    public static DataType createDataType(String name){
+
+        return new DataType(name).setFather(OBJECT);
     }
-    private DataType() {
+    private DataType(String name) {
+        this.name = name;
     }
     /*
 
@@ -27,8 +30,8 @@ public class DataType {
         this.father=father;
         return this;
     }
-    public static DataType createDataType(DataType father){
-        return new DataType().setFather(father);
+    public static DataType createDataType(String name,DataType father){
+        return new DataType(name).setFather(father);
     }
     public boolean isInstanceOf(DataType target){
         return isInstanceOf(this,target);

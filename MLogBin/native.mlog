@@ -1,0 +1,6 @@
+
+func:
+
+Num add(Num a,Num b){
+return raw("add a b",a,b);
+}

@@ -7,9 +7,21 @@ public class Main {
         String code;
         Compiler compiler = new Compiler();
 
-//        code="""
-//
-//        """;
+
+        String nativeLibrary=readFileAsString("MLogBin/native.mlog");
+
+
+
+
+
+
+        Tree Ntokens = compiler.tokenizer( nativeLibrary);
+
+        // System.out.println(tokens.toString());
+
+        Tree NLibrary = compiler.preParser(Ntokens, "main");
+
+        System.out.println(NLibrary.toString());
 
 
 
@@ -19,45 +31,29 @@ public class Main {
 
 
 
-
-        //code="if{ (s) break(((x)=1))} ";
-
-        code=readFileAsString("MLogProjects/main.mlog");
-
-
-
-
-
-
-
-        System.out.println(code);
-        Tree tokens = compiler.tokenizer( code+"\s");
-
-       // System.out.println(tokens.toString());
-
-        Tree pre1 = compiler.preParser(tokens, "main");
-        System.out.println(pre1.toString());
-
-        Tree ast=compiler.parser(pre1);
-        
-
-        System.out.println("\nAST: \n" + ast);
-
-
-//        System.out.println(tokens);
-//        HashMap<String, Object> ast = Compiler.parser(tokens);
-//        System.out.println(ast);
-//        HashMap<String, Object> newAst = Compiler.transformer(ast);
-//        System.out.println(newAst);
+//        code=readFileAsString("MLogProjects/main.mlog");
 //
 //
 //
 //
-//        ArrayList<HashMap<String, Object>> array = new ArrayList<>();
-//        Compiler.argumentDistribute(newAst,array,0);
-//        System.out.println(array);
-//        String outPut = Compiler.codeGenerator(array);
-//        System.out.println(outPut);
+//
+//
+//
+//        System.out.println(code);
+//        Tree tokens = compiler.tokenizer( code+"\s");
+//
+//       // System.out.println(tokens.toString());
+//
+//        Tree pre1 = compiler.preParser(tokens, "main");
+//        System.out.println(pre1.toString());
+//
+//        Tree ast=compiler.parser(pre1);
+//
+//
+//        System.out.println("\nAST: \n" + ast);
+
+
+
     }
     //read and append all to a String  from a  file
 
