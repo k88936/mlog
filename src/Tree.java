@@ -1,120 +1,70 @@
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Objects;
 
 public class Tree {
     static final String CHILDREN = "children";
-    Node root= new Node();
+    Node root = new Node();
 
 
-    Tree addNode(Node node){
+    Tree addNode(Node node) {
 
 
         this.root.addChild(node);
         return this;
     }
-    Node getNode(int index){
+
+    Tree addNode(Tree subTree) {
+
+
+        this.root.addChild(subTree.root);
+        return this;
+    }
+
+
+    Node getNode(int index) {
         return this.root.children.get(index);
 
     }
-    int getSize(){
+
+    int getSize() {
         return this.root.children.size();
     }
-    Node newNode(){
+
+    Node newNode() {
         return new Node();
 
     }
-    void putData(String name, Object object){
+
+    Tree putData(String name, Object object) {
         this.root.putData(name, object);
-    }
-    void putData(String name1,Object object1,String name2,Object object2){
-        this.root.putData(name1,object1,name2,object2);
-
+        return this;
     }
 
-    public String toString(Node node ){
-
-
-
-        visitor visitor = new visitor() {
-
-
-            int level = 0;
-
-            @Override
-            public String doWithSelf(Node node,ArrayList<Object> dataFromChildren) {
-
-                this.level++;
-                StringBuilder sb = new StringBuilder();
-                char[] chs = new char[this.level *4];
-                for (int i = 0; i < this.level *4; i++) {
-                    chs[i] = '-';
-                }
-
-
-
-
-
-                sb.append("-{" +"\n");
-
-                for (Node child : node.children) {
-
-
-
-                   // sb.append("\n");
-
-
-
-                       sb.append(new String(chs));
-
-
-                    //sb.append(' ');
-
-                    for (String key:child.data.keySet()) {
-
-                        if (key==CHILDREN)continue;
-
-                        sb.append(key);
-                        sb.append(":");
-                        sb.append(child.data.get(key));
-                        sb.append(';');
-                        sb.append("\n");
-                        sb.append(new String(chs));
-
-                    }
-                   // sb.append("\n");
-                    sb.append(this.doWithSelf(child,null));
-                }
-                this.level--;
-                 chs = new char[this.level *4];
-                for (int i = 0; i < this.level *4; i++) {
-                    chs[i] = '-';
-                }
-                sb.append(new String(chs)+ "-}" +"\n");
-                return sb.toString();
-            }
-
-            @Override
-            public Object doWithChild(Node node,Node parent) {
-                return null;
-            }
-        };
-        return (String) visitor.doWithSelf(node,null);
+    Tree putData(String name1, Object object1, String name2, Object object2) {
+        this.root.putData(name1, object1, name2, object2);
+        return this;
     }
+
+
+
+
     public String toString() {
+        return this.root.toString();
 
-        return this.toString(new Node().addChild(this.root));
-//return this.toString(root);
+       // return "";
     }
 
 
-    static class Node {
+    static class Node implements Serializable {
 
         Node parent;
 
         Node left;
         Node right;
 
-
+        Node jump=null;
 
         HashMap<String, Object> data = new HashMap();
         ArrayList<Node> children = new ArrayList<Node>();
@@ -124,51 +74,56 @@ public class Tree {
             this.data.put(CHILDREN, this.children);
 
         }
+
         public Node(Node parent) {
             this.setParent(parent);
             this.data.put(CHILDREN, this.children);
         }
-        public Node(String key1,Object value1)
-        {
+
+        public Node(String key1, Object value1) {
             this.data.put(CHILDREN, this.children);
-            this.putData(key1,value1);
+            this.putData(key1, value1);
 
         }
-        public Node(String key1,Object value1,String key2,Object value2)
-        {
+
+        public Node(String key1, Object value1, String key2, Object value2) {
             this.data.put(CHILDREN, this.children);
-            this.putData(key1,value1,key2,value2);
+            this.putData(key1, value1, key2, value2);
 
         }
-        public Node(String key1,Object value1,String key2,Object value2,String key3,Object value3){
+
+        public Node(String key1, Object value1, String key2, Object value2, String key3, Object value3) {
             this.data.put(CHILDREN, this.children);
-            this.putData(key1,value1,key2,value2,key3,value3);
+            this.putData(key1, value1, key2, value2, key3, value3);
 
         }
-        public Node(String key1,Object value1,String key2,Object value2,String key3,Object value3,String key4,Object value4){
+
+        public Node(String key1, Object value1, String key2, Object value2, String key3, Object value3, String key4, Object value4) {
             this.data.put(CHILDREN, this.children);
-            this.putData(key1,value1,key2,value2,key3,value3,key4,value4);
+            this.putData(key1, value1, key2, value2, key3, value3, key4, value4);
 
         }
-        public void removeFromParent(){
+
+        public Node removeFromParent() {
             if (this.parent == null) {
-                return;
+                return null;
             }
             if (this.right != null) {
-                this.right.left=this.left;
+                this.right.left = this.left;
             }
             if (this.left != null) {
-                this.left.right=this.right;
+                this.left.right = this.right;
             }
 
 
             this.parent.children.remove(this);
 
             this.parent = null;
-            this.left=null;
-            this.right=null;
-        }
+            this.left = null;
+            this.right = null;
+            return this;
 
+        }
 
 
         public Node addChild(Node node) {
@@ -178,10 +133,9 @@ public class Tree {
             }
 
 
-
-            node.left=this.getLastChild();
+            node.left = this.getLastChild();
             if (this.getLastChild() != null) {
-                this.getLastChild().right=node;
+                this.getLastChild().right = node;
             }
 
             this.children.add(node);
@@ -189,28 +143,34 @@ public class Tree {
 
             return this;
         }
-        Node  getLastChild() {
+
+        Node getLastChild() {
             if (this.children.size() > 0) {
                 return this.children.get(this.children.size() - 1);
             }
             return null;
         }
+
         public Node getFirstChild() {
             if (this.children.size() > 0) {
                 return this.children.get(0);
             }
             return null;
         }
+
         Node getChild(int index) {
             return this.children.get(index);
         }
-        public Node getRight () {
+
+        public Node getRight() {
             return this.right;
         }
-        public Node getLeft () {
+
+        public Node getLeft() {
             return this.left;
         }
-        public Node getParent () {
+
+        public Node getParent() {
             return this.parent;
         }
 
@@ -225,10 +185,34 @@ public class Tree {
             return this;
 
         }
+        public Node setJump(Node node ){
+            this .jump = node;
+            return this;
+        }
+
+        // pull inside out is fully ok
         //exactly copyFrom
+        // it will cause lost some node if input right
         public Node replacedBy(Node node) {
-            this.data=node.data;
-            this.children=node.children;
+
+
+
+
+
+
+
+
+
+
+            if(node==this.right){
+                this.jump=this;
+            }
+
+            node.removeFromParent();
+            node = node.cutAndCopyTo();
+            this.data = node.data;
+            this.children = node.children;
+
 
 //            node.removeFromParent();
 //
@@ -246,38 +230,33 @@ public class Tree {
 //            this.removeFromParent();
 
 
+            //TODO
 
-
-
-
-
-
-
-
-          //TODO
-
-        //TODO make null function
+            //TODO make null function
 
             return null;
         }
 
-        public boolean hasChildren(){
+        public boolean hasChildren() {
             return this.children.size() > 0;
         }
-        public boolean hasLeft(){
+
+        public boolean hasLeft() {
             return this.left != null;
         }
-        public boolean hasRight(){
+
+        public boolean hasRight() {
             return this.right != null;
         }
+
         //insert a node before it
         public Node insertBefore(Node node) {
             if (node == null) {
                 return this;
             }
             if (this.left != null) {
-                this.left.right=node;
-                node.left=this.left;
+                this.left.right = node;
+                node.left = this.left;
             }
             this.left = node;
             node.right = this;
@@ -285,105 +264,199 @@ public class Tree {
             node.parent = this.parent;
             return this;
         }
+
         //insert a node after it
         public Node insertAfter(Node node) {
             if (node == null) {
                 return this;
             }
-            if (this.right!= null) {
-                this.right.left=node;
-                node.right=this.right;
+            if (this.right != null) {
+                this.right.left = node;
+                node.right = this.right;
             }
             this.right = node;
             node.left = this;
             return this;
         }
 
-        public boolean singleChild(){
+       public String toString() {
+
+           return (String) new visitor() {
+
+               static int level = 0;
+
+               String generateBlank(){
+                   char[] chs = new char[level * 4];
+                   for (int i = 0; i < level * 4; i++) {
+                       chs[i] = '-';
+                   }
+
+                   return new String(chs);
+               }
+
+               @Override
+               public Object execute(Node node, ArrayList<Object> dataFromChildren) {
+
+                   //todo split
+
+                   //todo return
+
+                   StringBuilder sb = new StringBuilder();
+
+
+                   sb.append("\r"+generateBlank());
+                   for (String key : node.data.keySet()) {
+
+                       if (Objects.equals(key, CHILDREN)) continue;
+
+                       sb.append(key);
+                       sb.append(":");
+                       if (Objects.equals(key, Compiler.AST_FUNCTION_CONTENT)){
+
+                           sb.append(node.data.get(key).hashCode());
+
+                       }else {
+                           sb.append(node.data.get(key));
+                       }
+
+                       sb.append(';');
+                       sb.append("\n");
+                       sb.append(generateBlank());
+
+                   }
+                   sb.append("-{" + "\n");
+                   for (Object childData :
+                           dataFromChildren) {
+                       sb.append(childData);
+                   }
+                   sb.append(generateBlank() + "-}" + "\n");
+                   return sb.toString();
+               }
+
+               @Override
+               public Object enter(Node startPoint) {
+                   level++;
+                   return null;
+               }
+
+               @Override
+               public Object exit(Node startPoint) {
+                   level--;
+                   return null;
+               }
+           }.visit(this);
+
+
+        }
+
+        Node copyTo() {
+            try {
+                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                ObjectOutputStream oos = new ObjectOutputStream(bos);
+                oos.writeObject(this);
+                ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
+                ObjectInputStream ois = new ObjectInputStream(bis);
+                return (Node) ois.readObject();
+            } catch (Exception e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
+
+        Node cutAndCopyTo() {
+
+            Node newNode = this.copyTo();
+            newNode.parent = null;
+            newNode.left = null;
+            newNode.right = null;
+            return newNode;
+        }
+
+        public boolean singleChild() {
             return this.children.size() == 1;
         }
+
         public Object getData(String key) {
             //if null then return a String of blank
 
             return this.data.get(key);
         }
+
         public String getStringData(String key) {
             //char to string
             if (this.data.containsKey(key)) {
                 return this.getData(key).toString();
-            }
-            else {
+            } else {
                 return "\s";
             }
 
 
         }
+
         Node putData(String key, Object value) {
-            this.data.put(key,value);
+            this.data.put(key, value);
 
             return this;
         }
+
         Node putData(String key1, Object value1, String key2, Object value2) {
-            this.data.put(key1,value1);
-            this.data.put(key2,value2);
+            this.data.put(key1, value1);
+            this.data.put(key2, value2);
 
             return this;
         }
-        Node putData(String key1, Object value1, String key2, Object value2, String key3, Object value3){
-            this.data.put(key1,value1);
-            this.data.put(key2,value2);
-            this.data.put(key3,value3);
+
+        Node putData(String key1, Object value1, String key2, Object value2, String key3, Object value3) {
+            this.data.put(key1, value1);
+            this.data.put(key2, value2);
+            this.data.put(key3, value3);
             return this;
         }
-        Node putData(String key1, Object value1, String key2, Object value2, String key3, Object value3, String key4, Object value4){
-            this.data.put(key1,value1);
-            this.data.put(key2,value2);
-            this.data.put(key3,value3);
-            this.data.put(key4,value4);
+
+        Node putData(String key1, Object value1, String key2, Object value2, String key3, Object value3, String key4, Object value4) {
+            this.data.put(key1, value1);
+            this.data.put(key2, value2);
+            this.data.put(key3, value3);
+            this.data.put(key4, value4);
 
             return this;
         }
 
 
     }
+
     static abstract class visitor {
-        Object visit(Tree tree){
-          return this.visit(tree.root);
+
+        Object visit(Tree tree) {
+            return this.visit(tree.root);
 
         }
-        Object visit(Node node){
+
+        Object visit(Node node) {
             ArrayList<Object> dataFromChildren = new ArrayList<>();
-            int i = 0;
-            Node child=node.getFirstChild();
+            enter(node);
 
-            //&&(child.hasRight()||!child.hasLeft())
-            while (child!=null){
-
-
-                if (child.hasChildren()){
-                    this.visit(child);
+            Node child = node.getFirstChild();
+            while (child != null) {
+                dataFromChildren.add(visit(child));
+                Node jump = child.jump;
+                if (jump != null) {
+                    child.setJump(null);
+                    child=jump;
+                }else {
+                    child = child.right;
                 }
-                dataFromChildren.add(this.doWithChild(child,node));
 
-               child = child.right;
             }
-
-            return this.doWithSelf(node,dataFromChildren);
+            exit(node);
+            return execute(node, dataFromChildren);
         }
 
 
-//
-        /*
+        public abstract Object execute(Node node, ArrayList<Object> dataFromChildren);
 
-        @ execute doWithSelf only when hasChildren
-        @return walk return
-         */
-        public abstract Object doWithSelf(Node self,ArrayList<Object> dataFromChildren);
-        public abstract Object doWithChild(Node child,Node parent);
-
-
+        public abstract Object enter(Node startPoint);
+        public abstract Object exit(Node startPoint);
+        //
     }
-
-
-
 }

@@ -1,6 +1,7 @@
 
 func:
 
-Num add(Num a,Num b){
-return raw("add a b",a,b);
+num add(num a,num b){
+raw("add a b",a,b)
 }
+

@@ -7,11 +7,8 @@ if(y){
 setup:
 
 loop:
-
 func:
 Num add(Num a,Num b){
-
 return native.add(a,b);
-
 }
 
