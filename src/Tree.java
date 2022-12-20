@@ -56,6 +56,11 @@ public class Tree {
        // return "";
     }
 
+    public Node getNode(String name, String library) {
+        return this.root.getChild(name, library);
+
+    }
+
 
     static class Node implements Serializable {
 
@@ -161,6 +166,14 @@ public class Tree {
         Node getChild(int index) {
             return this.children.get(index);
         }
+        Node getChild(String key, Object value){
+            for (Node node : this.children) {
+                if (node.data.containsKey(key) && node.data.get(key).equals(value)) {
+                    return node;
+                }
+            }
+            return null;
+        }
 
         public Node getRight() {
             return this.right;
@@ -240,6 +253,9 @@ public class Tree {
         public boolean hasChildren() {
             return this.children.size() > 0;
         }
+        public boolean hasParent() {
+            return this.parent != null;
+        }
 
         public boolean hasLeft() {
             return this.left != null;
@@ -279,6 +295,10 @@ public class Tree {
             return this;
         }
 
+        /**
+         * @param
+         * @return
+         */
        public String toString() {
 
            return (String) new visitor() {
@@ -304,24 +324,30 @@ public class Tree {
                    StringBuilder sb = new StringBuilder();
 
 
-                   sb.append("\r"+generateBlank());
+                   sb.append("\r"+ this.generateBlank());
                    for (String key : node.data.keySet()) {
 
                        if (Objects.equals(key, CHILDREN)) continue;
 
                        sb.append(key);
                        sb.append(":");
+
                        if (Objects.equals(key, Compiler.AST_FUNCTION_CONTENT)){
 
-                           sb.append(node.data.get(key).hashCode());
+
+//                           sb.append("\n================================<<<\n");
+//                           sb.append(node.data.get(key).toString());
+//                           sb.append("\n================================>>>\n");
 
                        }else {
-                           sb.append(node.data.get(key));
-                       }
+                           sb.append(node.data.get(key).toString());
 
+                       }
                        sb.append(';');
                        sb.append("\n");
-                       sb.append(generateBlank());
+                       sb.append(this.generateBlank());
+
+
 
                    }
                    sb.append("-{" + "\n");
@@ -329,7 +355,7 @@ public class Tree {
                            dataFromChildren) {
                        sb.append(childData);
                    }
-                   sb.append(generateBlank() + "-}" + "\n");
+                   sb.append(this.generateBlank() + "-}" + "\n");
                    return sb.toString();
                }
 
@@ -427,18 +453,20 @@ public class Tree {
 
     static abstract class visitor {
 
+        static Node currentNode;
         Object visit(Tree tree) {
             return this.visit(tree.root);
 
         }
 
         Object visit(Node node) {
+            currentNode=node;
             ArrayList<Object> dataFromChildren = new ArrayList<>();
-            enter(node);
+            this.enter(node);
 
             Node child = node.getFirstChild();
             while (child != null) {
-                dataFromChildren.add(visit(child));
+                dataFromChildren.add(this.visit(child));
                 Node jump = child.jump;
                 if (jump != null) {
                     child.setJump(null);
@@ -448,15 +476,25 @@ public class Tree {
                 }
 
             }
-            exit(node);
-            return execute(node, dataFromChildren);
+            this.exit(node);
+            return this.execute(node, dataFromChildren);
         }
 
 
         public abstract Object execute(Node node, ArrayList<Object> dataFromChildren);
 
-        public abstract Object enter(Node startPoint);
-        public abstract Object exit(Node startPoint);
+        public Object enter(Node parent) {
+            return null;
+        }
+
+        public Object exit(Node parent) {
+            return null;
+        }
+
+        public boolean isRoot() {
+
+            return currentNode.hasParent();
+        }
         //
     }
 }

@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 
 /**
  *
@@ -17,26 +18,18 @@ public class Main {
 
         Tree nativeLibrary= loader("MLogBin/native.mlog");
 
-        System.out.println("-------------------------------------------------");
-        System.out.println(nativeLibrary);
-        System.out.println("-------------------------------------------------");
+        Library.compileLibraries();
+
+//        System.out.println("-------------------------------------------------");
+//        System.out.println(nativeLibrary);
+//        System.out.println("-------------------------------------------------");
 
 
 
 
 
         String code;
-        code="main:\n" +
-                "if(){\n" +
-                "\n" +
-                " native.add(1 1)\n" +
-                " }\n" +
-                "setup:\n" +
-                "\n" +
-                "loop:\n" +
-                "\n" +
-                "func:\n" +
-                "end:";
+        code="main: x=native.add(1,2); x=1; return 0; end: ";
 
 
         //System.out.println(code);
@@ -75,9 +68,46 @@ public class Main {
         library= compiler.semanticParser(library);
 
 
-
         String nameSpace=        path.substring(path.lastIndexOf("/")+1,path.lastIndexOf("."));
-        mlogProject=new Tree().addNode(library.putData(Library.NAME, Library.LIBRARY)).putData(Library.NAMESPACE, nameSpace);
+
+
+        //give it an id
+       new Tree.visitor(){
+
+
+            @Override
+            public Object execute(Tree.Node node, ArrayList<Object> dataFromChildren) {
+                if (node.hasParent()&&Compiler.AST_TYPE_FUNCTION.equals(node.parent.getStringData(Compiler.TREE_TYPE))){
+                    return node.getData(Compiler.AST_VARIATION_DATA_TYPE);
+
+                }
+                if (Compiler.AST_TYPE_FUNCTION.equals(node.getStringData(Compiler.TREE_TYPE))){
+
+
+                    StringBuilder sb = new StringBuilder(nameSpace)
+                            .append('.')
+                            .append(node.getStringData(Compiler.TREE_VALUE));
+
+                    // no need consider func in func
+                    for (Object dt:
+                         dataFromChildren) {
+
+                        sb.append('_')
+                        .append(dt.toString());
+
+                    }
+                    node.putData(Library.FUNC_ID,sb.toString());
+                }
+                return null;
+            }
+
+
+        }.visit(library);
+
+
+
+
+        mlogProject=new Tree().addNode(library.putData(Library.LiBRARY_SORT_NAME, Library.LIBRARY)).putData(Library.NAMESPACE, nameSpace);
 
 
         Library.addLibrary(mlogProject);

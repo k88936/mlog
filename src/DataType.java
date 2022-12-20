@@ -41,18 +41,18 @@ public class DataType implements Serializable {
     public boolean equals(DataType other) {
         if (other == null) {
             return false;
-        }else if(this.name.equals(other.name)){
-            return true;
-        }else {
-            return false;
-        }
+        }else return this.name.equals(other.name);
 
     }
     public static boolean isInstanceOf(DataType local, DataType target) {
 
         if (local.equals(target)) {
             return true;
-        } else if (local.father != OBJECT) {
+            //maybe dangerous
+        } else if(local.equals(OBJECT)){
+            return false;
+        }
+        else if (local.father != OBJECT) {
             return isInstanceOf(local.father, target);
         }
 
@@ -77,15 +77,6 @@ public class DataType implements Serializable {
                 return null;
             }
 
-            @Override
-            public Object enter(Tree.Node startPoint) {
-                return null;
-            }
-
-            @Override
-            public Object exit(Tree.Node startPoint) {
-                return null;
-            }
 
 
         }.visit(this.node);
@@ -98,7 +89,8 @@ public class DataType implements Serializable {
     }
 
     public String toString() {
-        return "TYPE: " + this.name;
+        //"TYPE: " +
+        return  this.name;
     }
 
     private DataType setFather(DataType father) {
@@ -107,7 +99,15 @@ public class DataType implements Serializable {
         return this;
     }
 
-    public boolean isInstanceOf(DataType target) {
-        return isInstanceOf(this, target);
+    public boolean isInstanceOf(Object target) {
+
+        if (target != null) {
+            return isInstanceOf(this, (DataType) target);
+        }else if (this.equals(OBJECT)) {
+            return true;
+        } else {
+            return false ;
+        }
+
     }
 }
