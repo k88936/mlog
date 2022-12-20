@@ -276,22 +276,22 @@ public class Compiler {
 
 
                             switch (OperationSet.get(name)[2]) {
-                                case "double" -> {
+                                case "double" :{
                                     node.left.setParent(node);
                                     node.jump=node.right;
                                     node.right.jump=node;
                                     node.right.setParent(node);
-
+break;
                                 }
-                                case "opt-right" -> {
+                                case "opt-right" : {
                                     node.jump=node.right;
                                     node.right.jump=node;
                                     node.right.setParent(node);
-
+                                    break;
                                 }
-                                case "opt-left" -> {
+                                case "opt-left" : {
                                     node.left.setParent(node);
-
+                                    break;
                                 }
 
 
@@ -449,21 +449,23 @@ public class Compiler {
         switch (type) {
 
 
-            case TREE_TOKEN_NUMBER -> {
+            case TREE_TOKEN_NUMBER : {
                 this.current++;
                 return new Tree.Node(TREE_TYPE, AST_TYPE_NUMBER_LITERAL, TREE_VALUE, value);
+                //break;
             }
-            case TREE_TOKEN_STRING -> {
+            case TREE_TOKEN_STRING : {
                 this.current++;
                 return new Tree.Node(TREE_TYPE, AST_TYPE_STRING_LITERAL, TREE_VALUE, value);
+                //break;
             }
-            case AST_TYPE_OPERATION -> {
+            case AST_TYPE_OPERATION : {
                 this.current++;
                 return new Tree.Node(TREE_TYPE, AST_TYPE_OPERATION, TREE_VALUE, value);
-
+               // break;
             }
 
-            case TREE_TOKEN_PAREN -> {
+            case TREE_TOKEN_PAREN : {
                 Tree.Node token = tokenLeft;
                 tokenLeft = tokens.getNode(this.current - 1);
                 //because name comes before paren    (tokenLeft.getStringData(VALUE).matches("if|else|while")) &
@@ -495,9 +497,10 @@ public class Compiler {
                 }
 
 
+               // break;
             }
 
-            case TREE_TOKEN_NAME -> {
+            case TREE_TOKEN_NAME : {
 
                 Tree.Node tokenWithName = tokenLeft;
                 //here already current plus
@@ -604,14 +607,14 @@ public class Compiler {
                     }
                 }
 
-
+               // break;
             }
 
 
-            default -> {
+            default :{
 
                 throw new Exception(type);
-
+                //break;
             }
 
 

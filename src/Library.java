@@ -272,13 +272,9 @@ public class Library {
 
 
                         //it is stupid to use multi callback
-                        switch (node.getStringData(Compiler.TREE_VALUE)){
-                            case "return":{
-                                for (int i = 0; i < node.children.size(); i++) {
-                                    results[0]=(node.getChild(i).getStringData(Compiler.TREE_VALUE));
-                                }
-
-                                break;
+                        if ("return".equals(node.getStringData(Compiler.TREE_VALUE))) {
+                            for (int i = 0; i < node.children.size(); i++) {
+                                results[0] = (node.getChild(i).getStringData(Compiler.TREE_VALUE));
                             }
                         }
                         break;
