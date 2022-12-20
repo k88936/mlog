@@ -50,20 +50,7 @@ public class Library {
         System.out.println("----------------------------------------------------------------------------------------");
 
     }
-    //  static final String ID="id";
-//    class Function{
-//
-//        public String functionId;
-//        public String name;
-//        public String[] returnVar;
-//        public String[] args;
-//
-//        public String toNative() {
-//
-//        }
-//
-//
-//    }
+
 
 
     //todo how to fin the nearest function not add(obj) but add(num)
@@ -128,6 +115,7 @@ public class Library {
         return new Object[]{DataType.OBJECT, UNDEFINED_FUNCTION};
 
     }
+
 
 
 }

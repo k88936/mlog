@@ -6,7 +6,11 @@ raw("add c a b",param_a,param_b,result_c)
 return c;
 }
 
-obj set(obj local,obj target){
-raw("set local target",param_target,result_local)
-return local;
+
+num add(num aa,num bb,num cc){
+
+
+result=native.add(aa,native.add(bb,cc));
+return result
+
 }

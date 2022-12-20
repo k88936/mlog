@@ -1,51 +1,49 @@
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
-//todo translation 
-
 
 public class Compiler {
-    static final HashMap<String, String[]> logicDictionary = new HashMap<>();
+
     final static String TREE_TYPE = "type";
     final static String TREE_VALUE = "value";
-    final static String TOKENS = "tokens";
     final static String TREE_TOKEN_PAREN = "paren";
-    final static String TREE_TOKEN_NUMBER = "number";
-    final static String AST_TYPE_NUMBER_LITERAL = "NumberLiteral";
     final static String TREE_TOKEN_STRING = "string";
-    final static String AST_TYPE_STRING_LITERAL = "StringLiteral";
+    final static String TREE_TOKEN_NUMBER = "number";
     final static String TREE_TOKEN_NAME = "name";
-    final static String KEY_WORD = "key word";
+    final static String AST_TYPE_NUMBER_LITERAL = "NumberLiteral";
+    final static String AST_TYPE_STRING_LITERAL = "StringLiteral";
+
     final static String AST_TYPE_FUNCTION = "function";
+    final static String AST_TYPE_EXPRESSION = "expression";// used by Compiler
     final static String AST_TYPE_VARIATION = "variation";
 
     final static String AST_TYPE_CODE_BLOCK = "code block";
+    final static String AST_TYPE_TYPE_DECLARATION = "typeDeclaration";
     final static String AST_TYPE_CONTROL = "control";
     final static String AST_TYPE_OPERATION = "operation";
-    //final static String OBJECT = "object";
-
-    //final static String VOID = "void";
-    final static int maxPriority;
-    final static HashMap<String, String[]> OperationSet;
 
 
-    final static String AST_TYPE_EXPRESSION = "expression";// used by Compiler
-    final static String CONTROL_PATTERN_SIGN = "[+\\-*/=<>]";
-    final static String CONTROL_PATTERN = "if|else|while|break|continue|break|continue|return|switch|";
     final static String AST_FUNCTION_RETURN_TYPE = "returnType";
-    final static String AST_VARIATION_DATA_TYPE = "dataType";
-
-
-    static final DataType DATA_VOID, DATA_ITEM_TYPE, DATA_UNIT, DATA_BLOCK, DATA_STRING, DATA_NUMBER, DATA_OBJECT;
-    static final String TYPE_PATTERN;
-    final static String IGNORE = "ignore";
-    final static String AST_TYPE_TYPE_DECLARATION = "typeDeclaration";
+    static final String AST_FUNCTION_ID = Library.FUNC_ID;
     final static String AST_FUNCTION_DEFINED = "defined";
     final static String AST_FUNCTION_CONTENT = "content";
+    final static String AST_VARIATION_DATA_TYPE = "dataType";
+
     static final String RENTURN_VAR = "return var";
-    static final String AST_FUNCTION_ID = Library.FUNC_ID;
+
+    final static String IGNORE = "ignore";
+    final static String CONTROL_PATTERN_SIGN = "[+\\-*/=<>]";
+    final static String CONTROL_PATTERN = "if|else|while|break|continue|return|switch|";
+    static final DataType DATA_VOID, DATA_ITEM_TYPE, DATA_UNIT, DATA_BLOCK, DATA_STRING, DATA_NUMBER, DATA_OBJECT;
+    static final String TYPE_PATTERN;
+    final static int maxPriority;
+    final static HashMap<String, String[]> OperationSet;
+    static final HashMap<String, String[]> logicDictionary = new HashMap<>();
 
     static {
 
@@ -59,18 +57,10 @@ public class Compiler {
 
         DATA_VOID = DataType.createDataType("void");
         TYPE_PATTERN = DataType.getAllDataTypesNames();
-        // System.out.println();
-        // final DataType DATA_BOOLEAN = DataType.createDataType();
-        //final DataType DATA_NULL = DataType.createDataType();
-    }
-
-    static {
 
         logicDictionary.put("add_2", new String[]{"add result a b", "a", "b"});
         logicDictionary.put("add_0", new String[]{"add result "});
-    }
 
-    static {
         maxPriority = 10;
 
 
@@ -79,134 +69,16 @@ public class Compiler {
         OperationSet.put("+", new String[]{"9", "add", "double"});
         OperationSet.put("=", new String[]{"3", "set", "double"});
         OperationSet.put("++", new String[]{"9", "selfAdd", "opt-left"});
-
     }
 
+
     int current;
-    //    Tree NParser(Tree tokens) throws Exception {
-//        this.current =0;
-//        Tree ast = new Tree();
-//        while (this.current < tokens.root.children.size()) {
-//            ast.addNode(this.walk()alk(tokens));
-//        }
-//
-//
-//
-//
-//
-//        return null;
-//    }
-    /*
-     * @param
-     * @return
-     */ int currentOperationClass = maxPriority;
+
+    int currentOperationClass = maxPriority;
 
     static Tree translator(Tree ast) {
 
         //todo adapt to
-        new Tree.visitor() {
-
-            @Override
-            public Object execute(Tree.Node node, ArrayList<Object> dataFromChildren) {
-
-                HashMap<String, DataType> variationMap = new HashMap<String, DataType>();
-
-
-                switch (node.getStringData(Compiler.TREE_TYPE)) {
-
-                    case Compiler.AST_TYPE_FUNCTION: {
-//                        if (node.getData(Compiler.AST_FUNCTION_DEFINED) != null) {
-//                            return null;
-//                        }
-
-                        String nameSpace = "native";
-                        String name = node.getStringData(Compiler.TREE_VALUE);
-                        if (name.contains(".")) {
-                            String[] callerSet = name.split("\\.");
-
-                            nameSpace = callerSet[0];
-                            name = callerSet[1];
-                        }
-
-                        DataType[] argTypes = new DataType[dataFromChildren.size()];
-                        for (int i = 0; i < dataFromChildren.size(); i++) {
-
-
-                            if (dataFromChildren.get(i) != null) {
-                                argTypes[i] = (DataType) dataFromChildren.get(i);
-                            } else {
-                                argTypes[i] = DataType.OBJECT;
-                            }
-
-
-//
-                        }
-
-                        try {
-
-                            //todo unify var with type
-
-                            //adjust before or after set
-
-                            Object[] information = Library.getReturnDataType(nameSpace, name, argTypes);
-                            node.putData(Compiler.AST_FUNCTION_RETURN_TYPE, information[0]);
-
-                            node.putData(Compiler.AST_FUNCTION_ID, information[1]);
-
-
-                            //todo here ?
-                            if (node.getData(RENTURN_VAR) != null) {
-                                variationMap.put(node.getStringData(RENTURN_VAR), (DataType) node.getData(AST_FUNCTION_RETURN_TYPE));
-
-
-                            }
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
-                            //e.printStackTrace();
-                        }
-
-                        return node.getData(Compiler.AST_FUNCTION_RETURN_TYPE);
-
-                    }
-                    //break;
-                    case Compiler.AST_TYPE_VARIATION: {
-                        if (node.getStringData(Compiler.AST_VARIATION_DATA_TYPE) != null) {
-
-                        } else {
-//todo
-                            Object type = variationMap.get(node.getStringData(Compiler.TREE_VALUE));
-                            if (type != null) {
-                                node.putData(Compiler.AST_VARIATION_DATA_TYPE, type);
-                            } else {
-                                node.putData(Compiler.AST_VARIATION_DATA_TYPE, Compiler.DATA_OBJECT);
-                                variationMap.put(node.getStringData(Compiler.TREE_VALUE), (DataType) node.getData(Compiler.AST_VARIATION_DATA_TYPE));
-
-                            }
-
-
-                        }
-
-                        return node.getData(Compiler.AST_VARIATION_DATA_TYPE);
-                    }
-                    case Compiler.AST_TYPE_NUMBER_LITERAL: {
-                        node.putData(Compiler.AST_VARIATION_DATA_TYPE, Compiler.DATA_NUMBER);
-                        return Compiler.DATA_NUMBER;
-                    }
-                    case Compiler.AST_TYPE_STRING_LITERAL: {
-                        //node.putData(Compiler.AST_VARIATION_DATA_TYPE, Compiler.DATA_STRING);
-                        return Compiler.DATA_STRING;
-                    }
-
-                }
-
-
-                return null;
-            }
-
-
-        }.visit(ast);
-
-
 
 
         String[] results = new String[1];
@@ -245,42 +117,29 @@ public class Compiler {
 //
 //
 //                        } else {
-
-                            //todo dangerous
-                            if (!(Boolean) Library.functionList.get(node.getData(Library.FUNC_ID)).getData(Compiler.AST_FUNCTION_DEFINED)) {
-                                Compiler.compileLibrary(node.getStringData(Library.FUNC_ID));
-                            }
-                            String code = Library.functionList.get(node.getData(Library.FUNC_ID)).getStringData(Library.NATIVE_CODE);
-
-
+                        Object isDefined = Library.functionList.get(node.getData(Library.FUNC_ID)).getData(Compiler.AST_FUNCTION_DEFINED);
+                        //todo dangerous
+                        if (isDefined != null && (Boolean) isDefined) {
+                            Compiler.compileLibrary(node.getStringData(Library.FUNC_ID));
+                        }
+                        String code = Library.functionList.get(node.getData(Library.FUNC_ID)).getStringData(Library.NATIVE_CODE);
 
 
+                        String[] subArgs = (String[]) Library.functionList.get(node.getData(Library.FUNC_ID)).getData(Library.ARGS);
+                        String[] subReturn = (String[]) Library.functionList.get(node.getData(Library.FUNC_ID)).getData(Library.RETURNS);
 
 
+                        //todo not professional
+                        for (int i = 0; i < node.children.size(); i++) {
+                            code = code.replaceAll("\s" + subArgs[i], "\s" + node.getChild(i).getStringData(Compiler.TREE_VALUE));
+                        }
+                        if (node.getData(Compiler.RENTURN_VAR) != null) {
+                            code = code.replaceAll("\s" + subReturn[0], "\s" + node.getStringData(Compiler.RENTURN_VAR));
+                        }
 
 
-
-
-                            String[] subArgs = (String[]) Library.functionList.get(node.getData(Library.FUNC_ID)).getData(Library.ARGS);
-                            String[] subReturn = (String[]) Library.functionList.get(node.getData(Library.FUNC_ID)).getData(Library.RETURNS);
-
-
-
-
-                            //todo not professional
-                            for (int i = 0; i < node.children.size(); i++) {
-                                code = code.replaceAll("\s" + subArgs[i], "\s" + node.getChild(i).getStringData(Compiler.TREE_VALUE));
-                            }
-                            if (node.getData(Compiler.RENTURN_VAR) != null) {
-                                code = code.replaceAll("\s" + subReturn[0], "\s" + node.getStringData(Compiler.RENTURN_VAR));
-                            }
-
-
-                            NativeCode.append("\n");
-                            NativeCode.append(code);
-
-
-
+                        NativeCode.append("\n");
+                        NativeCode.append(code);
 
 
                         break;
@@ -290,9 +149,9 @@ public class Compiler {
 
 
                         //it is stupid to use multi callback
-                        if ("return".equals(node.getStringData(Compiler.TREE_VALUE))) {
-                            results[0] = (node.getFirstChild().getStringData(Compiler.TREE_VALUE));
-                        }
+//                        if ("return".equals(node.getStringData(Compiler.TREE_VALUE))) {
+//                            results[0] = (node.getFirstChild().getStringData(Compiler.TREE_VALUE));
+//                        }
                         break;
                     }
                 }
@@ -301,12 +160,6 @@ public class Compiler {
                 return null;
             }
         }.visit(ast);
-
-
-
-
-
-
 
 
         System.out.println(NativeCode);
@@ -365,6 +218,7 @@ public class Compiler {
                                 argTypes[i] = DataType.OBJECT;
                             }
 
+                            //todo here ?
 
 //
                         }
@@ -395,6 +249,7 @@ public class Compiler {
                     //break;
                     case Compiler.AST_TYPE_VARIATION: {
                         if (node.getStringData(Compiler.AST_VARIATION_DATA_TYPE) != null) {
+                            variationMap.put(node.getStringData(Compiler.TREE_VALUE), (DataType) node.getData(Compiler.AST_VARIATION_DATA_TYPE));
 
                         } else {
 
@@ -440,6 +295,7 @@ public class Compiler {
 
         StringBuilder NativeCode = new StringBuilder();
         //func is your home
+        //generate native code
         new Tree.visitor() {
 
             @Override
@@ -474,20 +330,22 @@ public class Compiler {
 
                         } else {
 
+                            //todo fux for identifying
                             //todo dangerous
-                            if (!(Boolean) Library.functionList.get(node.getData(Library.FUNC_ID)).getData(Compiler.AST_FUNCTION_DEFINED)) {
+                            Object isDefined = Library.functionList.get(node.getData(Library.FUNC_ID)).getData(Compiler.AST_FUNCTION_DEFINED);
+                            //todo dangerous
+                            if (isDefined != null && (Boolean) isDefined) {
                                 Compiler.compileLibrary(node.getStringData(Library.FUNC_ID));
-
-
                             }
                             String code = Library.functionList.get(node.getData(Library.FUNC_ID)).getStringData(Library.NATIVE_CODE);
                             String[] subArgs = (String[]) Library.functionList.get(node.getData(Library.FUNC_ID)).getData(Library.ARGS);
                             String[] subReturn = (String[]) Library.functionList.get(node.getData(Library.FUNC_ID)).getData(Library.RETURNS);
                             for (int i = 0; i < node.children.size(); i++) {
-                                code = code.replaceAll("\s" + subArgs[i], "\s" + node.getChild(i).getStringData(Compiler.TREE_VALUE));
+                                code = code.replaceAll("\s" + subArgs[i]+"\s", "\s" + node.getChild(i).getStringData(Compiler.TREE_VALUE)+"\s");
                             }
+                            //todo link between //subReturn and sub
                             if (node.getData(Compiler.RENTURN_VAR) != null) {
-                                code = code.replaceAll("\s" + subReturn[0], "\s" + node.getStringData(Compiler.RENTURN_VAR));
+                                code = code.replaceAll("\s" + subReturn[0]+"\s", "\s" + node.getStringData(Compiler.RENTURN_VAR)+"\s");
                             }
 
 
@@ -690,6 +548,10 @@ public class Compiler {
 
         //here no current use
         //OOperation Great
+
+
+
+        // operation to pre-function
         this.currentOperationClass = maxPriority;
         while (this.currentOperationClass > 0) {
             this.current = 0;
@@ -744,8 +606,11 @@ public class Compiler {
         }
 
 
-        //here to clear unused
 
+
+
+
+        //here to clear unused
         new Tree.visitor() {
 
 
@@ -790,6 +655,14 @@ public class Compiler {
 
         }.visit(ast);
 
+
+
+
+
+
+
+
+//merge unneeded suite
         new Tree.visitor() {
 
             @Override
@@ -826,15 +699,22 @@ public class Compiler {
                     if (AST_TYPE_VARIATION.equals(node.right.getStringData(TREE_TYPE))) {
 
                         node.right.putData(AST_VARIATION_DATA_TYPE, DataType.getDataType(node.getStringData(TREE_VALUE)));
+                        node.setJump(node.right);
                         node.replacedBy(node.right);
                         return null;
                     }
                     if (AST_TYPE_FUNCTION.equals(node.right.getStringData(TREE_TYPE))) {
 
                         node.right.putData(AST_FUNCTION_RETURN_TYPE, DataType.getDataType(node.getStringData(TREE_VALUE)));
+
+                        //todo a better way to do it
                         node.right.putData(AST_FUNCTION_DEFINED, false);
+
+                        // it is a declaration!!!
+
                         //here I put a data and give up add to child
                         node.right.putData(AST_FUNCTION_CONTENT, node.right.right.removeFromParent());
+                        node.setJump(node.right);
                         node.replacedBy(node.right);
                         return null;
 
@@ -842,6 +722,7 @@ public class Compiler {
                     if (AST_TYPE_EXPRESSION.equals(node.right.getStringData(TREE_TYPE)) && "set".equals(node.right.getStringData(TREE_TOKEN_NAME))) {
                         node.right.putData(AST_FUNCTION_RETURN_TYPE, DataType.getDataType(node.getStringData(TREE_VALUE)));
                         node.right.getFirstChild().putData(AST_FUNCTION_RETURN_TYPE, DataType.getDataType(node.getStringData(TREE_VALUE)));
+                        node.setJump(node.right);
                         node.replacedBy(node.right);
                         return null;
 
@@ -853,7 +734,28 @@ public class Compiler {
 
         }.visit(ast);
 
-        //make sure tidy
+
+
+
+
+
+
+        // I want to unify our vars
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
         return ast;
@@ -1058,22 +960,91 @@ public class Compiler {
         return "CODE_BLOCK_" + index + "_ignore";
     }
 
-    //todo 语义分析 but not a loader
+    public Tree loader(String path) throws Exception {
+        String text = "";
+        try {
+            text = new String(Files.readAllBytes(Paths.get(path)));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // this is important to and an end
+        Tree mlogProject = tokenizer(text + "\nend: ");
+        Tree library = preParser(mlogProject, "func");
+        library = parser(library);
+
+
+        //no more operation
+       // library = semanticParser(library);
+
+
+        String nameSpace = path.substring(path.lastIndexOf("/") + 1, path.lastIndexOf("."));
+
+
+        //give it an id
+        new Tree.visitor() {
+
+
+            @Override
+            public Object execute(Tree.Node node, ArrayList<Object> dataFromChildren) {
+                if (node.hasParent() && Compiler.AST_TYPE_FUNCTION.equals(node.parent.getStringData(Compiler.TREE_TYPE))) {
+                    return node.getData(Compiler.AST_VARIATION_DATA_TYPE);
+
+                }
+                if (Compiler.AST_TYPE_FUNCTION.equals(node.getStringData(Compiler.TREE_TYPE))) {
+
+
+                    StringBuilder sb = new StringBuilder(nameSpace)
+                            .append('.')
+                            .append(node.getStringData(Compiler.TREE_VALUE));
+
+                    // no need consider func in func
+                    for (Object dt :
+                            dataFromChildren) {
+
+                        if (dt != null) {
+                            sb.append('_').append(dt.toString());
+                        }
+
+
+                    }
+                    node.putData(Library.FUNC_ID, sb.toString());
+                }
+                return null;
+            }
+
+
+        }.visit(library);
+
+
+        mlogProject = new Tree().addNode(library.putData(Library.LIBRARY_SORT_NAME, Library.LIBRARY)).putData(Library.NAMESPACE, nameSpace);
+
+
+        Library.addLibrary(mlogProject);
+        return Library.FunctionTree;
+
+
+    }
+
+
+
+    //only designed for main
     public Tree semanticParser(Tree ast) {
 
+        HashMap<String, DataType> variationMap = new HashMap<String, DataType>();
 
-        //todo register the functions
+        //make clear every type
         new Tree.visitor() {
 
             @Override
             public Object execute(Tree.Node node, ArrayList<Object> dataFromChildren) {
-                switch (node.getStringData(TREE_TYPE)) {
-                    case AST_TYPE_FUNCTION:
 
+                switch (node.getStringData(Compiler.TREE_TYPE)) {
 
-                        if (node.getData(AST_FUNCTION_DEFINED) != null) {
-                            return null;
-                        }
+                    case Compiler.AST_TYPE_FUNCTION: {
+//                        if (node.getData(Compiler.AST_FUNCTION_DEFINED) != null) {
+//                            return null;
+//                        }
 
                         String nameSpace = "native";
                         String name = node.getStringData(Compiler.TREE_VALUE);
@@ -1100,153 +1071,131 @@ public class Compiler {
 
                         try {
 
+                            //todo unify var with type
+
+                            //adjust before or after set
+
                             Object[] information = Library.getReturnDataType(nameSpace, name, argTypes);
-                            node.putData(AST_FUNCTION_RETURN_TYPE, information[0]);
-                            node.putData(AST_FUNCTION_ID, information[1]);
+                            node.putData(Compiler.AST_FUNCTION_RETURN_TYPE, information[0]);
+
+                            node.putData(Compiler.AST_FUNCTION_ID, information[1]);
+
+
+
+
+                            //todo here ?
+                            if (node.getData(RENTURN_VAR) != null) {
+                                variationMap.put(node.getStringData(RENTURN_VAR), (DataType) node.getData(AST_FUNCTION_RETURN_TYPE));
+
+
+                            }
                         } catch (Exception e) {
                             throw new RuntimeException(e);
                             //e.printStackTrace();
                         }
 
-                        return node.getData(AST_FUNCTION_RETURN_TYPE);
+                        return node.getData(Compiler.AST_FUNCTION_RETURN_TYPE);
 
-
+                    }
                     //break;
-                    case AST_TYPE_VARIATION:
-                        if (node.getData(AST_VARIATION_DATA_TYPE) != null) {
+                    case Compiler.AST_TYPE_VARIATION: {
 
+                        if (node.getData(Compiler.AST_VARIATION_DATA_TYPE) != null) {
+
+                            variationMap.put(node.getStringData(Compiler.TREE_VALUE), (DataType) node.getData(Compiler.AST_VARIATION_DATA_TYPE));
                         } else {
-                            node.putData(AST_VARIATION_DATA_TYPE, DATA_OBJECT);
+//todo
+                            Object type = variationMap.get(node.getStringData(Compiler.TREE_VALUE));
+                            if (type != null) {
+                                node.putData(Compiler.AST_VARIATION_DATA_TYPE, type);
+                            } else {
+                                node.putData(Compiler.AST_VARIATION_DATA_TYPE, Compiler.DATA_OBJECT);
+                                variationMap.put(node.getStringData(Compiler.TREE_VALUE), (DataType) node.getData(Compiler.AST_VARIATION_DATA_TYPE));
+
+                            }
+
+
                         }
 
-                        return node.getData(AST_VARIATION_DATA_TYPE);
-
-                    case AST_TYPE_NUMBER_LITERAL: {
-                        node.putData(AST_VARIATION_DATA_TYPE, DATA_NUMBER);
-                        return DATA_NUMBER;
+                        return node.getData(Compiler.AST_VARIATION_DATA_TYPE);
                     }
-                    case AST_TYPE_STRING_LITERAL: {
-                        node.putData(AST_VARIATION_DATA_TYPE, DATA_STRING);
-                        return DATA_STRING;
+                    case Compiler.AST_TYPE_NUMBER_LITERAL: {
+                        node.putData(Compiler.AST_VARIATION_DATA_TYPE, Compiler.DATA_NUMBER);
+                        return Compiler.DATA_NUMBER;
+                    }
+                    case Compiler.AST_TYPE_STRING_LITERAL: {
+                        //node.putData(Compiler.AST_VARIATION_DATA_TYPE, Compiler.DATA_STRING);
+                        return Compiler.DATA_STRING;
                     }
 
                 }
 
+
+                return null;
+            }
+
+
+        }.visit(ast);
+
+
+
+
+
+
+
+//        HashMap<String, DataType> variations = new HashMap();
+//        new Tree.visitor() {
+//            //todo maybe none-useful like this
+//            @Override
+//            public Object execute(Tree.Node child, ArrayList<Object> dataFromChildren) {
+////todo register variation
 //
-
-
-                return null;
-
-            }
-
-
-        }.visit(ast);
-
-
-        //todo register variation
-
-
-        //todo maybe none-useful like this
-
-        HashMap<String, DataType> variations = new HashMap();
-        new Tree.visitor() {
-
-            @Override
-            public Object execute(Tree.Node child, ArrayList<Object> dataFromChildren) {
-
-
-                if (AST_TYPE_EXPRESSION.equals(child.getStringData(TREE_TYPE)) && "set".equals(child.getStringData(TREE_VALUE))) {
-                    DataType dataType = DATA_VOID;
-                    if (AST_TYPE_FUNCTION.equals(child.getLastChild().getStringData(TREE_TYPE))) {
-
-                        //数据类型
-
-
-                        dataType = (DataType) child.getLastChild().getData(AST_FUNCTION_RETURN_TYPE);
-                    } else if (AST_TYPE_VARIATION.equals(child.getLastChild().getStringData(TREE_TYPE))) {
-                        dataType = (DataType) child.getLastChild().getData(AST_VARIATION_DATA_TYPE);
-                    }
-                    //  variations.put(child.getFirstChild().getStringData(TREE_VALUE), dataType);
-                }
-                return null;
-            }
-
-
-        }.visit(ast);
-        new Tree.visitor() {
-
-
-            @Override
-            public Object execute(Tree.Node child, ArrayList<Object> dataFromChildren) {
-
-                if (AST_TYPE_VARIATION.equals(child.getStringData(TREE_TYPE))) {
-                    //todo what todo
-                    // variations.containsKey(child.getFirstChild().getStringData(TREE_VALUE));
-
-
-                }
-                return null;
-
-            }
-
-
-        }.visit(ast);
-
+//                if (AST_TYPE_EXPRESSION.equals(child.getStringData(TREE_TYPE)) && "set".equals(child.getStringData(TREE_VALUE))) {
+//                    DataType dataType = DATA_VOID;
+//                    if (AST_TYPE_FUNCTION.equals(child.getLastChild().getStringData(TREE_TYPE))) {
+//
+//                        //数据类型
+//
+//
+//                        dataType = (DataType) child.getLastChild().getData(AST_FUNCTION_RETURN_TYPE);
+//                    } else if (AST_TYPE_VARIATION.equals(child.getLastChild().getStringData(TREE_TYPE))) {
+//                        dataType = (DataType) child.getLastChild().getData(AST_VARIATION_DATA_TYPE);
+//                    }
+//                    //  variations.put(child.getFirstChild().getStringData(TREE_VALUE), dataType);
+//                }
+//                return null;
+//            }
+//
+//
+//        }.visit(ast);
+//
+//        new Tree.visitor() {
+//
+//
+//            @Override
+//            public Object execute(Tree.Node node, ArrayList<Object> dataFromChildren) {
+//
+//                if (AST_TYPE_VARIATION.equals(node.getStringData(TREE_TYPE))) {
+//
+//
+//                    //todo what todo
+//                    // variations.containsKey(child.getFirstChild().getStringData(TREE_VALUE));
+//
+//
+//                }
+//                return null;
+//
+//            }
+//
+//
+//        }.visit(ast);
+//
 
         return ast;
 
 
     }
 
-
-    //todo far far
-
-    String codeGenerator(Tree ast) {
-
-        StringBuilder codeBuffer = new StringBuilder();
-
-
-        new Tree.visitor() {
-
-            @Override
-            public Object execute(Tree.Node child, ArrayList<Object> dataFromChildren) {
-                switch (child.getStringData(TREE_TYPE)) {
-
-                    case AST_TYPE_CONTROL -> {
-                        switch (child.getStringData(TREE_TOKEN_NAME)) {
-                            case "if", "while" -> {
-
-                            }
-                        }
-                    }
-                    //todo
-                    case AST_TYPE_FUNCTION -> {
-                        logicDictionary.get("");
-
-                    }
-
-
-                }
-                return null;
-            }
-
-
-        }.visit(ast);
-
-        for (Tree.Node codeSetting : ast.root.children) {
-
-            ArrayList<String> arguments = ((ArrayList<String>) codeSetting.getData("arguments"));
-
-
-            String code = this.getCode(codeSetting.getStringData("name"), arguments);
-            code = code.replaceAll("result", codeSetting.getStringData("result"));
-
-            codeBuffer.append(code).append('\n');
-
-
-        }
-        return codeBuffer.toString();
-    }
 
     private String getCode(String name, ArrayList<String> arguments) {
 
