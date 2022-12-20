@@ -16,9 +16,9 @@ public class Main {
         Library.compileLibraries();
 
 
-        System.exit(100);
+        //System.exit(100);
         String code;
-        code="main: num x; x=x+1 end: ";
+        code="main: num x; x=1+2+3 x=1+2 x=1+2+3+5 end: ";
 
 
         //System.out.println(code);

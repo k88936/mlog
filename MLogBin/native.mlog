@@ -5,12 +5,16 @@ num add(num a,num b){
 raw("add c a b",param_a,param_b,result_c)
 return c;
 }
-
+num set(obj local,num target){
+raw("set local target",param_target,result_local);
+}
 
 num add(num aa,num bb,num cc){
-
-
 result=native.add(aa,native.add(bb,cc));
 return result
+}
 
+num selfAdd(num aaa){
+    result=native.add(aaa,1);
+    return result
 }

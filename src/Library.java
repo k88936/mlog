@@ -45,9 +45,16 @@ public class Library {
 
         }
 
-        System.out.println("library compile complete");
-        System.out.println(functionList);
+        System.out.println("library compile complete: " + functionList.size());
         System.out.println("----------------------------------------------------------------------------------------");
+
+        for (Tree.Node fc:
+                functionList.values()) {
+            System.out.println(fc);
+            System.out.println("----------------------------------------------------------------------------------------");
+
+        }
+        System.out.println("================================================================================");
 
     }
 

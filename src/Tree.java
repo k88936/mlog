@@ -455,6 +455,7 @@ public class Tree {
 
     static abstract class visitor {
 
+        public int index=0;
         static Node currentNode;
         Object visit(Tree tree) {
             return this.visit(tree.root);
@@ -462,12 +463,15 @@ public class Tree {
         }
 
         Object visit(Node node) {
+            int localIndex=index;
+            index++;
             currentNode=node;
             ArrayList<Object> dataFromChildren = new ArrayList<>();
             this.enter(node);
 
             Node child = node.getFirstChild();
             while (child != null) {
+
                 dataFromChildren.add(this.visit(child));
                 Node jump = child.jump;
                 if (jump != null) {
@@ -477,7 +481,9 @@ public class Tree {
                     child = child.right;
                 }
 
+
             }
+            index=localIndex;
             this.exit(node);
             return this.execute(node, dataFromChildren);
         }

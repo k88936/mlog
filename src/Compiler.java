@@ -131,33 +131,61 @@ public class Compiler {
 
                         //todo not professional
                         for (int i = 0; i < node.children.size(); i++) {
-                            code = code.replaceAll("\s" + subArgs[i], "\s" + node.getChild(i).getStringData(Compiler.TREE_VALUE));
+
+
+
+                            code = code.replaceAll("\s" + subArgs[i]+"\s", "\s" + dataFromChildren.get(i).toString()+"\s");
                         }
                         if (node.getData(Compiler.RENTURN_VAR) != null) {
-                            code = code.replaceAll("\s" + subReturn[0], "\s" + node.getStringData(Compiler.RENTURN_VAR));
+
+                        }else {
+                            node.putData(Compiler.RENTURN_VAR, getTemtVarName(this. index));
+
                         }
+                        code = code.replaceAll("\s" + subReturn[0]+"\s", "\s" + node.getStringData(Compiler.RENTURN_VAR)+"\s");
+
 
 
                         NativeCode.append("\n");
                         NativeCode.append(code);
 
 
-                        break;
                     }
 
-                    case Compiler.AST_TYPE_CONTROL: {
+
+                    if (node.getData(Compiler.RENTURN_VAR) != null) {
 
 
-                        //it is stupid to use multi callback
-//                        if ("return".equals(node.getStringData(Compiler.TREE_VALUE))) {
-//                            results[0] = (node.getFirstChild().getStringData(Compiler.TREE_VALUE));
-//                        }
-                        break;
+                        //code = code.replaceAll("\s" + subReturn[0]+"\s", "\s" + node.getStringData(Compiler.RENTURN_VAR)+"\s");
+                        return node.getData(Compiler.RENTURN_VAR);
+                    }else {
+                        //todo index
+                        return getTemtVarName( this. index);
                     }
+
+
+
+
+//                    case Compiler.AST_TYPE_VARIATION: {
+//
+//
+//                    }
+
+                case Compiler.AST_TYPE_CONTROL: {
+
+
+                    //it is stupid to use multi callback
+                    if ("return".equals(node.getStringData(Compiler.TREE_VALUE))) {
+                        for (int i = 0; i < node.children.size(); i++) {
+                            results[0] = (node.getChild(i).getStringData(Compiler.TREE_VALUE));
+                        }
+                    }
+                    return IGNORE;
                 }
+            }
 
-
-                return null;
+                return node.getStringData(Compiler.TREE_VALUE);
+            // return IGNORE;
             }
         }.visit(ast);
 
@@ -306,6 +334,7 @@ public class Compiler {
 
 
                     case Compiler.AST_TYPE_FUNCTION: {
+
                         if (Library.RAW_FUNCTION.equals(node.getStringData(Compiler.TREE_VALUE))) {
 
                             String rawCode = node.getFirstChild().getStringData(Compiler.TREE_VALUE);
@@ -340,13 +369,23 @@ public class Compiler {
                             String code = Library.functionList.get(node.getData(Library.FUNC_ID)).getStringData(Library.NATIVE_CODE);
                             String[] subArgs = (String[]) Library.functionList.get(node.getData(Library.FUNC_ID)).getData(Library.ARGS);
                             String[] subReturn = (String[]) Library.functionList.get(node.getData(Library.FUNC_ID)).getData(Library.RETURNS);
+
                             for (int i = 0; i < node.children.size(); i++) {
-                                code = code.replaceAll("\s" + subArgs[i]+"\s", "\s" + node.getChild(i).getStringData(Compiler.TREE_VALUE)+"\s");
+
+
+
+                                code = code.replaceAll("\s" + subArgs[i]+"\s", "\s" + dataFromChildren.get(i).toString()+"\s");
                             }
                             //todo link between //subReturn and sub
+
                             if (node.getData(Compiler.RENTURN_VAR) != null) {
-                                code = code.replaceAll("\s" + subReturn[0]+"\s", "\s" + node.getStringData(Compiler.RENTURN_VAR)+"\s");
+
+                            }else {
+                                //todo better without take place many funcs inner variations names
+                                node.putData(Compiler.RENTURN_VAR,node.getStringData(Library.FUNC_ID)+ getTemtVarName(this. index));
+
                             }
+                            code = code.replaceAll("\s" + subReturn[0]+"\s", "\s" + node.getStringData(Compiler.RENTURN_VAR)+"\s");
 
 
                             NativeCode.append("\n");
@@ -356,8 +395,23 @@ public class Compiler {
                         }
 
 
-                        break;
+                        if (node.getData(Compiler.RENTURN_VAR) != null) {
+
+
+                           //code = code.replaceAll("\s" + subReturn[0]+"\s", "\s" + node.getStringData(Compiler.RENTURN_VAR)+"\s");
+                            return node.getData(Compiler.RENTURN_VAR);
+                        }else {
+                            //todo index
+                            return node.getStringData(Library.FUNC_ID)+ getTemtVarName( this. index);
+                        }
+
+
+
                     }
+//                    case Compiler.AST_TYPE_VARIATION: {
+//
+//
+//                    }
 
                     case Compiler.AST_TYPE_CONTROL: {
 
@@ -368,12 +422,12 @@ public class Compiler {
                                 results[0] = (node.getChild(i).getStringData(Compiler.TREE_VALUE));
                             }
                         }
-                        break;
+                       return IGNORE;
                     }
                 }
 
-
-                return null;
+                return node.getStringData(Compiler.TREE_VALUE);
+              // return IGNORE;
             }
         }.visit(content);
 
@@ -953,11 +1007,14 @@ public class Compiler {
     }
 
     private String getExpressionName(int index) {
-        return "EXPRESSION_" + index + "_ignore";
+        return "_EXPRESSION_" + index + "_ignore";
     }
 
     private String getCodeBlockName(int index) {
-        return "CODE_BLOCK_" + index + "_ignore";
+        return "_CODE_BLOCK_" + index + "_ignore";
+    }
+    static  private String getTemtVarName(int index) {
+        return "_TEMPT_" + index + "_ignore";
     }
 
     public Tree loader(String path) throws Exception {
