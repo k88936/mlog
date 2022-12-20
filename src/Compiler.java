@@ -44,6 +44,8 @@ public class Compiler {
     final static String AST_TYPE_TYPE_DECLARATION = "typeDeclaration";
     final static String AST_FUNCTION_DEFINED = "defined";
     final static String AST_FUNCTION_CONTENT = "content";
+    static final String RENTURN_VAR = "return var";
+    static final String AST_FUNCTION_ID = Library.FUNC_ID;
 
     static {
 
@@ -81,8 +83,7 @@ public class Compiler {
     }
 
     int current;
-
-//    Tree NParser(Tree tokens) throws Exception {
+    //    Tree NParser(Tree tokens) throws Exception {
 //        this.current =0;
 //        Tree ast = new Tree();
 //        while (this.current < tokens.root.children.size()) {
@@ -99,6 +100,439 @@ public class Compiler {
      * @param
      * @return
      */ int currentOperationClass = maxPriority;
+
+    static Tree translator(Tree ast) {
+
+        //todo adapt to
+        new Tree.visitor() {
+
+            @Override
+            public Object execute(Tree.Node node, ArrayList<Object> dataFromChildren) {
+
+                HashMap<String, DataType> variationMap = new HashMap<String, DataType>();
+
+
+                switch (node.getStringData(Compiler.TREE_TYPE)) {
+
+                    case Compiler.AST_TYPE_FUNCTION: {
+//                        if (node.getData(Compiler.AST_FUNCTION_DEFINED) != null) {
+//                            return null;
+//                        }
+
+                        String nameSpace = "native";
+                        String name = node.getStringData(Compiler.TREE_VALUE);
+                        if (name.contains(".")) {
+                            String[] callerSet = name.split("\\.");
+
+                            nameSpace = callerSet[0];
+                            name = callerSet[1];
+                        }
+
+                        DataType[] argTypes = new DataType[dataFromChildren.size()];
+                        for (int i = 0; i < dataFromChildren.size(); i++) {
+
+
+                            if (dataFromChildren.get(i) != null) {
+                                argTypes[i] = (DataType) dataFromChildren.get(i);
+                            } else {
+                                argTypes[i] = DataType.OBJECT;
+                            }
+
+
+//
+                        }
+
+                        try {
+
+                            //todo unify var with type
+
+                            //adjust before or after set
+
+                            Object[] information = Library.getReturnDataType(nameSpace, name, argTypes);
+                            node.putData(Compiler.AST_FUNCTION_RETURN_TYPE, information[0]);
+
+                            node.putData(Compiler.AST_FUNCTION_ID, information[1]);
+
+
+                            //todo here ?
+                            if (node.getData(RENTURN_VAR) != null) {
+                                variationMap.put(node.getStringData(RENTURN_VAR), (DataType) node.getData(AST_FUNCTION_RETURN_TYPE));
+
+
+                            }
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                            //e.printStackTrace();
+                        }
+
+                        return node.getData(Compiler.AST_FUNCTION_RETURN_TYPE);
+
+                    }
+                    //break;
+                    case Compiler.AST_TYPE_VARIATION: {
+                        if (node.getStringData(Compiler.AST_VARIATION_DATA_TYPE) != null) {
+
+                        } else {
+//todo
+                            Object type = variationMap.get(node.getStringData(Compiler.TREE_VALUE));
+                            if (type != null) {
+                                node.putData(Compiler.AST_VARIATION_DATA_TYPE, type);
+                            } else {
+                                node.putData(Compiler.AST_VARIATION_DATA_TYPE, Compiler.DATA_OBJECT);
+                                variationMap.put(node.getStringData(Compiler.TREE_VALUE), (DataType) node.getData(Compiler.AST_VARIATION_DATA_TYPE));
+
+                            }
+
+
+                        }
+
+                        return node.getData(Compiler.AST_VARIATION_DATA_TYPE);
+                    }
+                    case Compiler.AST_TYPE_NUMBER_LITERAL: {
+                        node.putData(Compiler.AST_VARIATION_DATA_TYPE, Compiler.DATA_NUMBER);
+                        return Compiler.DATA_NUMBER;
+                    }
+                    case Compiler.AST_TYPE_STRING_LITERAL: {
+                        //node.putData(Compiler.AST_VARIATION_DATA_TYPE, Compiler.DATA_STRING);
+                        return Compiler.DATA_STRING;
+                    }
+
+                }
+
+
+                return null;
+            }
+
+
+        }.visit(ast);
+
+
+
+
+        String[] results = new String[1];
+        StringBuilder NativeCode = new StringBuilder();
+        //func is your home
+        new Tree.visitor() {
+
+            @Override
+            public Object execute(Tree.Node node, ArrayList<Object> dataFromChildren) {
+
+
+                switch (node.getStringData(Compiler.TREE_TYPE)) {
+
+
+                    case Compiler.AST_TYPE_FUNCTION: {
+//                        if (Library.RAW_FUNCTION.equals(node.getStringData(Compiler.TREE_VALUE))) {
+//
+//                            String rawCode = node.getFirstChild().getStringData(Compiler.TREE_VALUE);
+//
+//                            for (int i = 1; i < node.children.size(); i++) {
+//                                if (node.children.get(i) != null) {
+//                                    //todo raw must like this
+//                                    String param = node.children.get(i).getStringData(Compiler.TREE_VALUE);
+//                                    String[] paramSplited = param.split("_");
+//
+//                                    String Type = paramSplited[0];
+//                                    String Name = paramSplited[1];
+//
+//
+//                                    rawCode = rawCode.replaceAll("\s" + param, "\s" + Name);
+//                                }
+//
+//                            }
+//                            NativeCode.append("\n");
+//                            NativeCode.append(rawCode);
+//
+//
+//                        } else {
+
+                            //todo dangerous
+                            if (!(Boolean) Library.functionList.get(node.getData(Library.FUNC_ID)).getData(Compiler.AST_FUNCTION_DEFINED)) {
+                                Compiler.compileLibrary(node.getStringData(Library.FUNC_ID));
+                            }
+                            String code = Library.functionList.get(node.getData(Library.FUNC_ID)).getStringData(Library.NATIVE_CODE);
+
+
+
+
+
+
+
+
+
+
+                            String[] subArgs = (String[]) Library.functionList.get(node.getData(Library.FUNC_ID)).getData(Library.ARGS);
+                            String[] subReturn = (String[]) Library.functionList.get(node.getData(Library.FUNC_ID)).getData(Library.RETURNS);
+
+
+
+
+                            //todo not professional
+                            for (int i = 0; i < node.children.size(); i++) {
+                                code = code.replaceAll("\s" + subArgs[i], "\s" + node.getChild(i).getStringData(Compiler.TREE_VALUE));
+                            }
+                            if (node.getData(Compiler.RENTURN_VAR) != null) {
+                                code = code.replaceAll("\s" + subReturn[0], "\s" + node.getStringData(Compiler.RENTURN_VAR));
+                            }
+
+
+                            NativeCode.append("\n");
+                            NativeCode.append(code);
+
+
+
+
+
+                        break;
+                    }
+
+                    case Compiler.AST_TYPE_CONTROL: {
+
+
+                        //it is stupid to use multi callback
+                        if ("return".equals(node.getStringData(Compiler.TREE_VALUE))) {
+                            results[0] = (node.getFirstChild().getStringData(Compiler.TREE_VALUE));
+                        }
+                        break;
+                    }
+                }
+
+
+                return null;
+            }
+        }.visit(ast);
+
+
+
+
+
+
+
+
+        System.out.println(NativeCode);
+
+
+        return ast;
+    }
+
+    static void compileLibrary(String id) {
+
+        Tree.Node func = Library.functionList.get(id);
+        Tree.Node content = (Tree.Node) func.getData(Library.CONTENT);
+
+
+        HashMap<String, DataType> variationMap = new HashMap<String, DataType>();
+
+
+        for (Tree.Node var : func.children
+        ) {
+            variationMap.put(var.getStringData(Compiler.TREE_VALUE), (DataType) var.getData(Compiler.AST_VARIATION_DATA_TYPE));
+
+        }
+
+
+        //todo auto capcity
+        String[] results = new String[1];
+        //todo it seemed that i can reuse the repeated code
+        new Tree.visitor() {
+
+
+            @Override
+            public Object execute(Tree.Node node, ArrayList<Object> dataFromChildren) {
+                switch (node.getStringData(Compiler.TREE_TYPE)) {
+
+                    case Compiler.AST_TYPE_FUNCTION: {
+//                        if (node.getData(Compiler.AST_FUNCTION_DEFINED) != null) {
+//                            return null;
+//                        }
+
+                        String nameSpace = "native";
+                        String name = node.getStringData(Compiler.TREE_VALUE);
+                        if (name.contains(".")) {
+                            String[] callerSet = name.split("\\.");
+
+                            nameSpace = callerSet[0];
+                            name = callerSet[1];
+                        }
+
+                        DataType[] argTypes = new DataType[dataFromChildren.size()];
+                        for (int i = 0; i < dataFromChildren.size(); i++) {
+
+
+                            if (dataFromChildren.get(i) != null) {
+                                argTypes[i] = (DataType) dataFromChildren.get(i);
+                            } else {
+                                argTypes[i] = DataType.OBJECT;
+                            }
+
+
+//
+                        }
+
+                        try {
+
+                            //todo unify var with type
+
+                            //adjust before or after set
+
+                            Object[] information = Library.getReturnDataType(nameSpace, name, argTypes);
+                            node.putData(Compiler.AST_FUNCTION_RETURN_TYPE, information[0]);
+
+                            node.putData(Compiler.AST_FUNCTION_ID, information[1]);
+                            if (node.getData(RENTURN_VAR) != null) {
+                                variationMap.put(node.getStringData(RENTURN_VAR), (DataType) node.getData(AST_FUNCTION_RETURN_TYPE));
+
+
+                            }
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                            //e.printStackTrace();
+                        }
+
+                        return node.getData(Compiler.AST_FUNCTION_RETURN_TYPE);
+
+                    }
+                    //break;
+                    case Compiler.AST_TYPE_VARIATION: {
+                        if (node.getStringData(Compiler.AST_VARIATION_DATA_TYPE) != null) {
+
+                        } else {
+
+                            Object type = variationMap.get(node.getStringData(Compiler.TREE_VALUE));
+                            if (type != null) {
+                                node.putData(Compiler.AST_VARIATION_DATA_TYPE, type);
+                                variationMap.put(node.getStringData(Compiler.TREE_VALUE), (DataType) node.getData(Compiler.AST_VARIATION_DATA_TYPE));
+
+                            } else {
+                                node.putData(Compiler.AST_VARIATION_DATA_TYPE, Compiler.DATA_OBJECT);
+                            }
+                            // variationMap.put(var.getStringData(Compiler.TREE_VALUE), (DataType) var.getData(Compiler.AST_VARIATION_DATA_TYPE));
+
+
+                        }
+
+                        return node.getData(Compiler.AST_VARIATION_DATA_TYPE);
+                    }
+                    case Compiler.AST_TYPE_NUMBER_LITERAL: {
+                        node.putData(Compiler.AST_VARIATION_DATA_TYPE, Compiler.DATA_NUMBER);
+                        return Compiler.DATA_NUMBER;
+                    }
+                    case Compiler.AST_TYPE_STRING_LITERAL: {
+                        //node.putData(Compiler.AST_VARIATION_DATA_TYPE, Compiler.DATA_STRING);
+                        return Compiler.DATA_STRING;
+                    }
+
+                }
+
+                return null;
+
+            }
+
+
+        }.visit(content);
+
+
+        //todo register variation
+
+
+        //todo maybe none-useful like this
+
+
+        StringBuilder NativeCode = new StringBuilder();
+        //func is your home
+        new Tree.visitor() {
+
+            @Override
+            public Object execute(Tree.Node node, ArrayList<Object> dataFromChildren) {
+
+
+                switch (node.getStringData(Compiler.TREE_TYPE)) {
+
+
+                    case Compiler.AST_TYPE_FUNCTION: {
+                        if (Library.RAW_FUNCTION.equals(node.getStringData(Compiler.TREE_VALUE))) {
+
+                            String rawCode = node.getFirstChild().getStringData(Compiler.TREE_VALUE);
+
+                            for (int i = 1; i < node.children.size(); i++) {
+                                if (node.children.get(i) != null) {
+                                    //todo raw must like this
+                                    String param = node.children.get(i).getStringData(Compiler.TREE_VALUE);
+                                    String[] paramSplited = param.split("_");
+
+                                    String Type = paramSplited[0];
+                                    String Name = paramSplited[1];
+
+
+                                    rawCode = rawCode.replaceAll("\s" + param, "\s" + Name);
+                                }
+
+                            }
+                            NativeCode.append("\n");
+                            NativeCode.append(rawCode);
+
+
+                        } else {
+
+                            //todo dangerous
+                            if (!(Boolean) Library.functionList.get(node.getData(Library.FUNC_ID)).getData(Compiler.AST_FUNCTION_DEFINED)) {
+                                Compiler.compileLibrary(node.getStringData(Library.FUNC_ID));
+
+
+                            }
+                            String code = Library.functionList.get(node.getData(Library.FUNC_ID)).getStringData(Library.NATIVE_CODE);
+                            String[] subArgs = (String[]) Library.functionList.get(node.getData(Library.FUNC_ID)).getData(Library.ARGS);
+                            String[] subReturn = (String[]) Library.functionList.get(node.getData(Library.FUNC_ID)).getData(Library.RETURNS);
+                            for (int i = 0; i < node.children.size(); i++) {
+                                code = code.replaceAll("\s" + subArgs[i], "\s" + node.getChild(i).getStringData(Compiler.TREE_VALUE));
+                            }
+                            if (node.getData(Compiler.RENTURN_VAR) != null) {
+                                code = code.replaceAll("\s" + subReturn[0], "\s" + node.getStringData(Compiler.RENTURN_VAR));
+                            }
+
+
+                            NativeCode.append("\n");
+                            NativeCode.append(code);
+
+
+                        }
+
+
+                        break;
+                    }
+
+                    case Compiler.AST_TYPE_CONTROL: {
+
+
+                        //it is stupid to use multi callback
+                        if ("return".equals(node.getStringData(Compiler.TREE_VALUE))) {
+                            for (int i = 0; i < node.children.size(); i++) {
+                                results[0] = (node.getChild(i).getStringData(Compiler.TREE_VALUE));
+                            }
+                        }
+                        break;
+                    }
+                }
+
+
+                return null;
+            }
+        }.visit(content);
+
+
+        String[] args = new String[func.children.size()];
+        for (int i = 0; i < func.children.size(); i++) {
+            args[i] = func.children.get(i).getStringData(Compiler.TREE_VALUE);
+        }
+        //todo
+
+
+        func.putData(Library.NATIVE_CODE, NativeCode.toString(), Compiler.AST_FUNCTION_DEFINED, true);
+
+        func.putData(Library.ARGS, args, Library.RETURNS, results);
+
+
+    }
 
     Tree tokenizer(String input) throws Exception {
 
@@ -236,14 +670,11 @@ public class Compiler {
             }
 
 
-
-
         }.visit(tokens);
 
         return partOfTokens;
     }
 
-    static final String RENTURN_VAR="return var";
     Tree parser(Tree tokens) throws Exception {
         this.current = 0;
         Tree ast = new Tree();
@@ -259,7 +690,7 @@ public class Compiler {
 
         //here no current use
         //OOperation Great
-        currentOperationClass=maxPriority;
+        this.currentOperationClass = maxPriority;
         while (this.currentOperationClass > 0) {
             this.current = 0;
 
@@ -276,20 +707,20 @@ public class Compiler {
 
 
                             switch (OperationSet.get(name)[2]) {
-                                case "double" :{
+                                case "double": {
                                     node.left.setParent(node);
-                                    node.jump=node.right;
-                                    node.right.jump=node;
-                                    node.right.setParent(node);
-break;
-                                }
-                                case "opt-right" : {
-                                    node.jump=node.right;
-                                    node.right.jump=node;
+                                    node.jump = node.right;
+                                    node.right.jump = node;
                                     node.right.setParent(node);
                                     break;
                                 }
-                                case "opt-left" : {
+                                case "opt-right": {
+                                    node.jump = node.right;
+                                    node.right.jump = node;
+                                    node.right.setParent(node);
+                                    break;
+                                }
+                                case "opt-left": {
                                     node.left.setParent(node);
                                     break;
                                 }
@@ -301,7 +732,6 @@ break;
                     }
                     return null;
                 }
-
 
 
             }.visit(ast);
@@ -344,7 +774,7 @@ break;
                 }
                 //todo dangerous
                 if ("set".equals(node.getStringData(TREE_VALUE))) {
-                    if (node.children.size()==2 && (AST_TYPE_FUNCTION.equals(node.getLastChild().getStringData(TREE_TYPE)))) {
+                    if (node.children.size() == 2 && (AST_TYPE_FUNCTION.equals(node.getLastChild().getStringData(TREE_TYPE)))) {
 
 
                         node.getLastChild().putData(RENTURN_VAR, node.getFirstChild().getStringData(TREE_VALUE));
@@ -356,7 +786,6 @@ break;
                 }
                 return null;
             }
-
 
 
         }.visit(ast);
@@ -391,7 +820,6 @@ break;
                 }
 
 
-
                 if (AST_TYPE_TYPE_DECLARATION.equals(node.getStringData(TREE_TYPE))) {
 
                     // troubled by replaced a right node
@@ -412,7 +840,7 @@ break;
 
                     }
                     if (AST_TYPE_EXPRESSION.equals(node.right.getStringData(TREE_TYPE)) && "set".equals(node.right.getStringData(TREE_TOKEN_NAME))) {
-                        node.right.putData(AST_FUNCTION_RETURN_TYPE,DataType.getDataType(node.getStringData(TREE_VALUE)));
+                        node.right.putData(AST_FUNCTION_RETURN_TYPE, DataType.getDataType(node.getStringData(TREE_VALUE)));
                         node.right.getFirstChild().putData(AST_FUNCTION_RETURN_TYPE, DataType.getDataType(node.getStringData(TREE_VALUE)));
                         node.replacedBy(node.right);
                         return null;
@@ -421,7 +849,6 @@ break;
                 }
                 return null;
             }
-
 
 
         }.visit(ast);
@@ -449,23 +876,23 @@ break;
         switch (type) {
 
 
-            case TREE_TOKEN_NUMBER : {
+            case TREE_TOKEN_NUMBER: {
                 this.current++;
                 return new Tree.Node(TREE_TYPE, AST_TYPE_NUMBER_LITERAL, TREE_VALUE, value);
                 //break;
             }
-            case TREE_TOKEN_STRING : {
+            case TREE_TOKEN_STRING: {
                 this.current++;
                 return new Tree.Node(TREE_TYPE, AST_TYPE_STRING_LITERAL, TREE_VALUE, value);
                 //break;
             }
-            case AST_TYPE_OPERATION : {
+            case AST_TYPE_OPERATION: {
                 this.current++;
                 return new Tree.Node(TREE_TYPE, AST_TYPE_OPERATION, TREE_VALUE, value);
-               // break;
+                // break;
             }
 
-            case TREE_TOKEN_PAREN : {
+            case TREE_TOKEN_PAREN: {
                 Tree.Node token = tokenLeft;
                 tokenLeft = tokens.getNode(this.current - 1);
                 //because name comes before paren    (tokenLeft.getStringData(VALUE).matches("if|else|while")) &
@@ -497,10 +924,10 @@ break;
                 }
 
 
-               // break;
+                // break;
             }
 
-            case TREE_TOKEN_NAME : {
+            case TREE_TOKEN_NAME: {
 
                 Tree.Node tokenWithName = tokenLeft;
                 //here already current plus
@@ -607,11 +1034,11 @@ break;
                     }
                 }
 
-               // break;
+                // break;
             }
 
 
-            default :{
+            default: {
 
                 throw new Exception(type);
                 //break;
@@ -623,7 +1050,6 @@ break;
 
     }
 
-
     private String getExpressionName(int index) {
         return "EXPRESSION_" + index + "_ignore";
     }
@@ -632,12 +1058,8 @@ break;
         return "CODE_BLOCK_" + index + "_ignore";
     }
 
-   static final String  AST_FUNCTION_ID=Library.FUNC_ID;
     //todo 语义分析 but not a loader
     public Tree semanticParser(Tree ast) {
-
-
-
 
 
         //todo register the functions
@@ -649,40 +1071,31 @@ break;
                     case AST_TYPE_FUNCTION:
 
 
-                        if (node.getData(AST_FUNCTION_DEFINED)!= null) {
+                        if (node.getData(AST_FUNCTION_DEFINED) != null) {
                             return null;
                         }
 
-                        String nameSpace="native";
-                        String name=node.getStringData(Compiler.TREE_VALUE);
-                        if (name.contains(".") ){
-                            String[] callerSet =name.split("\\.");
+                        String nameSpace = "native";
+                        String name = node.getStringData(Compiler.TREE_VALUE);
+                        if (name.contains(".")) {
+                            String[] callerSet = name.split("\\.");
 
-                            nameSpace=callerSet[0];
-                            name=callerSet[1];
+                            nameSpace = callerSet[0];
+                            name = callerSet[1];
                         }
 
-                        DataType[]  argTypes = new DataType[dataFromChildren.size()];
+                        DataType[] argTypes = new DataType[dataFromChildren.size()];
                         for (int i = 0; i < dataFromChildren.size(); i++) {
 
 
                             if (dataFromChildren.get(i) != null) {
                                 argTypes[i] = (DataType) dataFromChildren.get(i);
-                            }else {
+                            } else {
                                 argTypes[i] = DataType.OBJECT;
                             }
 
 
-//                            switch (node.children.get(i).getStringData(Compiler.TREE_TYPE)){
-//                                case Compiler.AST_TYPE_FUNCTION:{
-//                                    argTypes[i]= (DataType) node.getChild(i).getData(Compiler.AST_FUNCTION_RETURN_TYPE);
-//                                    break;
-//                                }
-//                                case Compiler.AST_TYPE_VARIATION: {
-//                                    argTypes[i] = (DataType) node.getChild(i).getData(Compiler.AST_VARIATION_DATA_TYPE);
-//                                    break;
-//                                }
-//                            }
+//
                         }
 
                         try {
@@ -698,17 +1111,15 @@ break;
                         return node.getData(AST_FUNCTION_RETURN_TYPE);
 
 
-
-
-                        //break;
+                    //break;
                     case AST_TYPE_VARIATION:
-                        if (node.getStringData(AST_VARIATION_DATA_TYPE)!= null){
+                        if (node.getData(AST_VARIATION_DATA_TYPE) != null) {
 
-                        }else {
+                        } else {
                             node.putData(AST_VARIATION_DATA_TYPE, DATA_OBJECT);
                         }
 
-                       return node.getData(AST_VARIATION_DATA_TYPE);
+                        return node.getData(AST_VARIATION_DATA_TYPE);
 
                     case AST_TYPE_NUMBER_LITERAL: {
                         node.putData(AST_VARIATION_DATA_TYPE, DATA_NUMBER);
@@ -729,9 +1140,7 @@ break;
             }
 
 
-
         }.visit(ast);
-
 
 
         //todo register variation
@@ -763,7 +1172,6 @@ break;
             }
 
 
-
         }.visit(ast);
         new Tree.visitor() {
 
@@ -776,14 +1184,10 @@ break;
                     // variations.containsKey(child.getFirstChild().getStringData(TREE_VALUE));
 
 
-
-
-
                 }
                 return null;
 
             }
-
 
 
         }.visit(ast);
@@ -791,30 +1195,6 @@ break;
 
         return ast;
 
-
-    }
-
-
-
-    public Tree translator(Tree ast) {
-        new Tree.visitor() {
-
-            @Override
-            public Object execute(Tree.Node node, ArrayList<Object> dataFromChildren) {
-                return null;
-            }
-
-
-        }.visit(ast);
-
-//todo
-
-
-
-
-
-
-        return null;
 
     }
 
@@ -849,7 +1229,6 @@ break;
                 }
                 return null;
             }
-
 
 
         }.visit(ast);

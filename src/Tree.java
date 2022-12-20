@@ -328,13 +328,15 @@ public class Tree {
                    for (String key : node.data.keySet()) {
 
                        if (Objects.equals(key, CHILDREN)) continue;
-
+                       if (Objects.equals(key, Library.ARGS)) continue;
+                       if (Objects.equals(key, Library.RETURNS)) continue;
                        sb.append(key);
                        sb.append(":");
 
                        if (Objects.equals(key, Compiler.AST_FUNCTION_CONTENT)){
 
 
+                           sb.append("content");
 //                           sb.append("\n================================<<<\n");
 //                           sb.append(node.data.get(key).toString());
 //                           sb.append("\n================================>>>\n");

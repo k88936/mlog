@@ -20,16 +20,9 @@ public class Main {
 
         Library.compileLibraries();
 
-//        System.out.println("-------------------------------------------------");
-//        System.out.println(nativeLibrary);
-//        System.out.println("-------------------------------------------------");
-
-
-
-
 
         String code;
-        code="main: x=native.add(1,2); x=1; return 0; end: ";
+        code="main:  x=1; end: ";
 
 
         //System.out.println(code);
@@ -38,13 +31,17 @@ public class Main {
         Tree pre1 = compiler.preParser(tokens, "main");
 
         Tree ast=compiler.parser(pre1);
-      //  System.out.println("\nAST: \n" + ast);
-       // System.out.println("-------------------------------------------------");
-       ast=compiler.semanticParser(ast);
+        ast=compiler.semanticParser(ast);
 
         System.out.println("\nAST: \n" + ast);
 
         System.out.println("-------------------------------------------------");
+
+       ast= Compiler.translator(ast);
+//        System.out.println("\nAST: \n" + ast);
+
+        System.out.println("-------------------------------------------------");
+
 
     }
 
@@ -107,7 +104,7 @@ public class Main {
 
 
 
-        mlogProject=new Tree().addNode(library.putData(Library.LiBRARY_SORT_NAME, Library.LIBRARY)).putData(Library.NAMESPACE, nameSpace);
+        mlogProject=new Tree().addNode(library.putData(Library.LIBRARY_SORT_NAME, Library.LIBRARY)).putData(Library.NAMESPACE, nameSpace);
 
 
         Library.addLibrary(mlogProject);

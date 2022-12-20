@@ -2,17 +2,11 @@
 func:
 
 num add(num a,num b){
-
 raw("add c a b",param_a,param_b,result_c)
-
 return c;
 }
 
-num BADD(num aaa,num b){
-
-b=native.add(aaa,1)
-cxx=native.add(aaa,b);
-
-cxx=1+cxx
-return cxx;
+obj set(obj local,obj target){
+raw("set local target",param_target,result_local)
+return local;
 }

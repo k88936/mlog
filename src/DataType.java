@@ -44,20 +44,23 @@ public class DataType implements Serializable {
         }else return this.name.equals(other.name);
 
     }
+    //terrible fix
     public static boolean isInstanceOf(DataType local, DataType target) {
 
-        if (local.equals(target)) {
+        if (OBJECT.equals(target)) {
             return true;
-            //maybe dangerous
-        } else if(local.equals(OBJECT)){
-            return false;
         }
-        else if (local.father != OBJECT) {
-            return isInstanceOf(local.father, target);
+        else {
+            if (local.equals(OBJECT) ) {
+                return false;
+            }else {
+               return isInstanceOf(local.father, target);
+            }
+
         }
 
 
-        return false;
+
 
     }
 
@@ -103,11 +106,7 @@ public class DataType implements Serializable {
 
         if (target != null) {
             return isInstanceOf(this, (DataType) target);
-        }else if (this.equals(OBJECT)) {
-            return true;
-        } else {
-            return false ;
-        }
+        }else return this.equals(OBJECT);
 
     }
 }
