@@ -47,7 +47,7 @@ public class DataType implements Serializable {
     //terrible fix
     public static boolean isInstanceOf(DataType local, DataType target) {
 
-        if (OBJECT.equals(target)) {
+        if (OBJECT.equals(target)|| local.equals(target)) {
             return true;
         }
         else {
