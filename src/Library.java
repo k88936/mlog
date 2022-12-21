@@ -31,7 +31,7 @@ public class Library {
 
         }
 
-//todo this is useless
+
         Library.FunctionTree.addNode(mlogLibrary);
 
 
@@ -40,6 +40,10 @@ public class Library {
     static void compileLibraries() {
 
         for (String id : functionList.keySet()) {
+
+            if ((Boolean) functionList.get(id).getData(Compiler.AST_FUNCTION_DEFINED)) {
+                continue;
+            }
 
             Compiler.compileLibrary(id);
 
@@ -59,8 +63,7 @@ public class Library {
     }
 
 
-
-    //todo how to fin the nearest function not add(obj) but add(num)
+    //todo how to fin the nearest function not add(obj) but add(num)   as long as
 
     static Object[] getReturnDataType(String nameSpace, String name, DataType[] argTypes) {
 

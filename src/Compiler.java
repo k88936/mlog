@@ -349,24 +349,28 @@ public class Compiler {
                                     String Name = paramSplited[1];
 
 
-                                    rawCode = rawCode.replaceAll("\s" + param+"\s", "\s" + Name+"\s");
+                                    rawCode = rawCode.replaceAll("\s" + param + "\s", "\s" + Name + "\s");
                                 }
 
                             }
                             NativeCode.append("\n");
-                            NativeCode.append(rawCode+"\s");
+                            NativeCode.append(rawCode + "\s");
 
 
-                        } else {
+                        } else //ELSE open your mouse ou no eyes
+                        {
+
 
                             //todo fux for identifying
                             //todo dangerous
-                            Object isDefined = Library.functionList.get(node.getData(Library.FUNC_ID)).getData(Compiler.AST_FUNCTION_DEFINED);
+                            Object isDefined = Library.functionList.get(node.getData(Library.FUNC_ID));
                             //todo dangerous
-                            if (isDefined != null && (Boolean) isDefined) {
+                            if (isDefined != null
+                                    && !(Boolean) ((Tree.Node) isDefined).getData(Compiler.AST_FUNCTION_DEFINED)) {
                                 Compiler.compileLibrary(node.getStringData(Library.FUNC_ID));
                             }
                             String code = Library.functionList.get(node.getData(Library.FUNC_ID)).getStringData(Library.NATIVE_CODE);
+
                             String[] subArgs = (String[]) Library.functionList.get(node.getData(Library.FUNC_ID)).getData(Library.ARGS);
                             String[] subReturn = (String[]) Library.functionList.get(node.getData(Library.FUNC_ID)).getData(Library.RETURNS);
 
@@ -380,15 +384,15 @@ public class Compiler {
 
                             if (node.getData(Compiler.RENTURN_VAR) != null) {
 
-                            }else {
+                            } else {
                                 //todo better without take place many funcs inner variations names
-                                node.putData(Compiler.RENTURN_VAR,node.getStringData(Library.FUNC_ID)+ getTemtVarName(this. index));
+                                node.putData(Compiler.RENTURN_VAR, node.getStringData(Library.FUNC_ID) + getTemtVarName(this.index));
 
                             }
                             code = code.replaceAll("\s" + subReturn[0]+"\s", "\s" + node.getStringData(Compiler.RENTURN_VAR)+"\s");
 
 
-                            NativeCode.append("\n");
+                            // NativeCode.append("\n");
                             NativeCode.append(code);
 
 
@@ -422,7 +426,9 @@ public class Compiler {
                                 results[0] = (node.getChild(i).getStringData(Compiler.TREE_VALUE));
                             }
                         }
-                       return IGNORE;
+
+
+                        return IGNORE;
                     }
                 }
 
@@ -433,6 +439,7 @@ public class Compiler {
 
 
         String[] args = new String[func.children.size()];
+
         for (int i = 0; i < func.children.size(); i++) {
             args[i] = func.children.get(i).getStringData(Compiler.TREE_VALUE);
         }
@@ -485,6 +492,21 @@ public class Compiler {
 
             if (Pattern.compile("[\s,\r\n;]").matcher(character + "").find()) {
                 current++;
+                continue;
+            }
+            if (Pattern.compile("#").matcher(character + "").find()) {
+
+                // StringBuilder value = new StringBuilder();
+                while (!Pattern.compile("[\n\r]").matcher(character + "").find()) {
+
+
+                    // value.append(character);
+                    character = input.charAt(++current);
+
+
+                }
+                // current++;
+                // tokens.addNode(new Tree.Node(TREE_TYPE, TREE_TOKEN_NAME, TREE_VALUE, value.toString()));
                 continue;
             }
 
@@ -661,16 +683,14 @@ public class Compiler {
 
 
 
-
-
-
-        //here to clear unused
         new Tree.visitor() {
-
 
             @Override
             public Object execute(Tree.Node node, ArrayList<Object> dataFromChildren) {
+
+
                 if (AST_TYPE_EXPRESSION.equals(node.getStringData(TREE_TYPE))) {
+
 
                     if (node.singleChild() && (node.getStringData(TREE_VALUE).endsWith(IGNORE))) {
 
@@ -679,8 +699,14 @@ public class Compiler {
 
 
                     }
-                    //node.putData(TREE_TYPE, AST_TYPE_FUNCTION);
+
+                    node.putData(TREE_TYPE, AST_TYPE_FUNCTION);
+
                 }
+
+                //todo mmm
+
+
                 if (AST_TYPE_CODE_BLOCK.equals(node.getStringData(TREE_TYPE))) {
                     if (node.singleChild() && (node.getStringData(TREE_VALUE).endsWith(IGNORE))) {
 
@@ -689,11 +715,64 @@ public class Compiler {
 
 
                     }
-                    //node.putData(TREE_TYPE, AST_TYPE_FUNCTION);
+
                 }
-                //todo dangerous
+                //simplefy add with direct result
+
+
+                if (AST_TYPE_TYPE_DECLARATION.equals(node.getStringData(TREE_TYPE))) {
+
+                    // troubled by replaced a right node
+                    if (AST_TYPE_VARIATION.equals(node.right.getStringData(TREE_TYPE))) {
+
+                        node.right.putData(AST_VARIATION_DATA_TYPE, DataType.getDataType(node.getStringData(TREE_VALUE)));
+                        node.setJump(node.right);
+                        node.replacedBy(node.right);
+                        return null;
+                    }
+//                    if (AST_TYPE_FUNCTION.equals(node.right.getStringData(TREE_TYPE))) {
+//
+//                        node.right.putData(AST_FUNCTION_RETURN_TYPE, DataType.getDataType(node.getStringData(TREE_VALUE)));
+//
+//                        //todo a better way to do it
+//
+//                        node.right.putData(AST_FUNCTION_DEFINED, false);
+//
+//                        // it is a declaration!!!
+//
+//                        //here I put a data and give up add to child
+//                        node.right.putData(AST_FUNCTION_CONTENT, node.right.right);
+//
+//                        //sdaassssssssssssssssssssss
+//
+//                   //     visit( node.right.right.removeFromParent().setJump(node));
+//
+//                        //node.right.setJump(node.right.right);
+//                       // node.setJump(node.right);
+//
+//                        node.replacedBy(node.right);
+//                        return null;
+//
+//                    }
+
+                    if ((AST_TYPE_EXPRESSION.equals(node.right.getStringData(TREE_TYPE))
+                            && "set".equals(node.right.getStringData(TREE_VALUE)))) {
+
+                        node.right.putData(AST_FUNCTION_RETURN_TYPE, DataType.getDataType(node.getStringData(TREE_VALUE)));
+                        node.right.putData(TREE_TYPE, AST_TYPE_FUNCTION);
+                        node.right.getFirstChild().putData(AST_FUNCTION_RETURN_TYPE, DataType.getDataType(node.getStringData(TREE_VALUE)));
+                        node.setJump(node.right);
+                        node.replacedBy(node.right);
+                        return null;
+
+                    }
+
+                }
                 if ("set".equals(node.getStringData(TREE_VALUE))) {
-                    if (node.children.size() == 2 && (AST_TYPE_FUNCTION.equals(node.getLastChild().getStringData(TREE_TYPE)))) {
+
+                    if (node.children.size() == 2
+                            && (AST_TYPE_FUNCTION.equals(node.getLastChild().getStringData(TREE_TYPE)))
+                            && node.getLastChild().getData(RENTURN_VAR) == null) {
 
 
                         node.getLastChild().putData(RENTURN_VAR, node.getFirstChild().getStringData(TREE_VALUE));
@@ -710,88 +789,45 @@ public class Compiler {
         }.visit(ast);
 
 
-
-
-
-
-
-
-//merge unneeded suite
         new Tree.visitor() {
 
             @Override
             public Object execute(Tree.Node node, ArrayList<Object> dataFromChildren) {
-
-                if (AST_TYPE_EXPRESSION.equals(node.getStringData(TREE_TYPE))) {
-
-
-                    if (node.singleChild() && (node.getStringData(TREE_VALUE).endsWith(IGNORE))) {
-
-
-                        node.replacedBy(node.getLastChild());
-
-
-                    }
-                    node.putData(TREE_TYPE, AST_TYPE_FUNCTION);
-
-                }
-                if (AST_TYPE_CODE_BLOCK.equals(node.getStringData(TREE_TYPE))) {
-                    if (node.singleChild() && (node.getStringData(TREE_VALUE).endsWith(IGNORE))) {
-
-
-                        node.replacedBy(node.getLastChild());
-
-
-                    }
-
-                }
-
-
                 if (AST_TYPE_TYPE_DECLARATION.equals(node.getStringData(TREE_TYPE))) {
 
-                    // troubled by replaced a right node
-                    if (AST_TYPE_VARIATION.equals(node.right.getStringData(TREE_TYPE))) {
 
-                        node.right.putData(AST_VARIATION_DATA_TYPE, DataType.getDataType(node.getStringData(TREE_VALUE)));
-                        node.setJump(node.right);
-                        node.replacedBy(node.right);
-                        return null;
-                    }
                     if (AST_TYPE_FUNCTION.equals(node.right.getStringData(TREE_TYPE))) {
 
                         node.right.putData(AST_FUNCTION_RETURN_TYPE, DataType.getDataType(node.getStringData(TREE_VALUE)));
 
                         //todo a better way to do it
+
                         node.right.putData(AST_FUNCTION_DEFINED, false);
 
                         // it is a declaration!!!
 
                         //here I put a data and give up add to child
                         node.right.putData(AST_FUNCTION_CONTENT, node.right.right.removeFromParent());
-                        node.setJump(node.right);
+
+                        //sdaassssssssssssssssssssss
+
+                        //     visit( node.right.right.setJump(node));
+
+                        //node.right.setJump(node.right.right);
+                        // node.setJump(node.right);
+
                         node.replacedBy(node.right);
                         return null;
 
                     }
-                    if (AST_TYPE_EXPRESSION.equals(node.right.getStringData(TREE_TYPE)) && "set".equals(node.right.getStringData(TREE_TOKEN_NAME))) {
-                        node.right.putData(AST_FUNCTION_RETURN_TYPE, DataType.getDataType(node.getStringData(TREE_VALUE)));
-                        node.right.getFirstChild().putData(AST_FUNCTION_RETURN_TYPE, DataType.getDataType(node.getStringData(TREE_VALUE)));
-                        node.setJump(node.right);
-                        node.replacedBy(node.right);
-                        return null;
 
-                    }
                 }
                 return null;
             }
-
-
         }.visit(ast);
 
 
-
-
-
+//merge unneeded suite
 
 
         // I want to unify our vars

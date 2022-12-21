@@ -72,7 +72,7 @@ public class Tree {
         Node jump=null;
 
         HashMap<String, Object> data = new HashMap();
-        ArrayList<Node> children = new ArrayList<Node>();
+        ArrayList<Node> children = new ArrayList<>();
 
         public Node() {
 
@@ -296,7 +296,6 @@ public class Tree {
         }
 
         /**
-         * @param
          * @return
          */
        public String toString() {
@@ -317,9 +316,6 @@ public class Tree {
                @Override
                public Object execute(Node node, ArrayList<Object> dataFromChildren) {
 
-                   //todo split
-
-                   //todo return
 
                    StringBuilder sb = new StringBuilder();
 
