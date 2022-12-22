@@ -199,7 +199,7 @@ public class Compiler {
         Tree.Node content = (Tree.Node) func.getData(Library.CONTENT);
 
 
-        HashMap<String, DataType> variationMap = new HashMap<String, DataType>();
+        HashMap<String, DataType> variationMap = new HashMap<>();
 
 
         for (Tree.Node var : func.children) {
@@ -316,13 +316,14 @@ public class Compiler {
 
         //todo maybe none-useful like this
 
-
+        final String MARK_TEMPT = "_TO_JUMP";
         StringBuilder NativeCodeBuilder = new StringBuilder();
         //func is your home
         //generate native code
         new Tree.visitor() {
             final static String SURROUND_MARK_FRONT = "surround mark front";
             final static String SURROUND_MARK_BACK = "surround mark back";
+
 
             //迭代正当其时
             //  boolean surrounded;
@@ -333,8 +334,8 @@ public class Compiler {
                 if (parent.hasParent() && (Compiler.AST_TYPE_EXPRESSION.equals(parent.getStringData(Compiler.TREE_TYPE))
 
                         || Compiler.AST_TYPE_CODE_BLOCK.equals(parent.getStringData(Compiler.TREE_TYPE)))) {
-                    String surroundMarkBase = func.getStringData(Library.FUNC_ID) + parent.getStringData(TREE_VALUE) + "_" + totalIndex + "_START:" + "\n";
-                    NativeCodeBuilder.append(surroundMarkBase);
+                    String surroundMarkBase = func.getStringData(Library.FUNC_ID) + parent.getStringData(TREE_VALUE) + "_" + totalIndex + "_START:";
+                    NativeCodeBuilder.append(surroundMarkBase + "\n");
                     parent.putData(SURROUND_MARK_FRONT, surroundMarkBase);
                 }
 
@@ -346,8 +347,8 @@ public class Compiler {
             public Object exit(Tree.Node parent) {
 
                 if (parent.hasParent() && (Compiler.AST_TYPE_EXPRESSION.equals(parent.getStringData(Compiler.TREE_TYPE)) || Compiler.AST_TYPE_CODE_BLOCK.equals(parent.getStringData(Compiler.TREE_TYPE)))) {
-                    String surroundMarkBase = func.getStringData(Library.FUNC_ID) + parent.getStringData(TREE_VALUE) + "_" + totalIndex + "_END:" + "\n";
-                    NativeCodeBuilder.append(surroundMarkBase);
+                    String surroundMarkBase = func.getStringData(Library.FUNC_ID) + parent.getStringData(TREE_VALUE) + "_" + totalIndex + "_END:";
+                    NativeCodeBuilder.append(surroundMarkBase + "\n");
                     parent.putData(SURROUND_MARK_BACK, surroundMarkBase);
                 }
 
@@ -356,6 +357,7 @@ public class Compiler {
 
             @Override
             public Object execute(Tree.Node node, ArrayList<Object> dataFromChildren) {
+
 
                 switch (node.getStringData(Compiler.TREE_TYPE)) {
 
@@ -393,9 +395,9 @@ public class Compiler {
                         {
 
 
-                            Object isDefined = Library.functionList.get(node.getData(Library.FUNC_ID));
+                            Tree.Node isDefined = Library.functionList.get(node.getData(Library.FUNC_ID));
 
-                            if (isDefined != null && !(Boolean) ((Tree.Node) isDefined).getData(Compiler.AST_FUNCTION_DEFINED)) {
+                            if (isDefined != null && !(Boolean) isDefined.getData(Compiler.AST_FUNCTION_DEFINED)) {
                                 Compiler.compileLibrary(node.getStringData(Library.FUNC_ID));
                             }
                             String code = Library.functionList.get(node.getData(Library.FUNC_ID)).getStringData(Library.NATIVE_CODE);
@@ -411,6 +413,7 @@ public class Compiler {
                             //todo link between //subReturn and sub
 
                             if (node.getData(Compiler.RENTURN_VAR) != null) {
+
 
                             } else {
                                 //todo better without take place many funcs inner variations names
@@ -457,15 +460,23 @@ public class Compiler {
 
                         //todo if get its condition from expression add start or end
 
+                        //todo maybe jump is not this way
                         //todo  also its block
 
                         if ("if".equals(node.getStringData(Compiler.TREE_VALUE))) {
 
                             //after expression jump area after code block
-                            String code = " jump " + dataFromChildren.get(0) + " notEqual true " + node.getLastChild().getStringData(SURROUND_MARK_BACK);
+                            NativeCodeBuilder.insert(NativeCodeBuilder.indexOf(node.getFirstChild().getStringData(SURROUND_MARK_BACK)), " jump " + " notEqual " + dataFromChildren.get(0) + " true " + node.getLastChild().getStringData(SURROUND_MARK_BACK).replaceAll(":", MARK_TEMPT + ":\n"));
 
-                            String jumpBase = node.getFirstChild().getStringData(SURROUND_MARK_FRONT);
-                            NativeCodeBuilder.insert(NativeCodeBuilder.indexOf(jumpBase), code);
+
+                        }
+                        if ("while".equals(node.getStringData(Compiler.TREE_VALUE))) {
+
+
+                            NativeCodeBuilder.insert(NativeCodeBuilder.indexOf(node.getFirstChild().getStringData(SURROUND_MARK_BACK)), " jump " + " notEqual " + dataFromChildren.get(0) + " true " + node.getLastChild().getStringData(SURROUND_MARK_BACK).replaceAll(":", MARK_TEMPT + ":\n"));
+                            NativeCodeBuilder.insert(NativeCodeBuilder.indexOf(node.getLastChild().getStringData(SURROUND_MARK_BACK)), " jump " + "always 0 0 " + node.getFirstChild().getStringData(SURROUND_MARK_FRONT).replaceAll(":", MARK_TEMPT + ":\n"));
+
+                            //   NativeCodeBuilder.insert(NativeCodeBuilder.indexOf(jumpBase), code);
 
 
                         }
@@ -486,6 +497,8 @@ public class Compiler {
                 return node.getStringData(Compiler.TREE_VALUE);
                 // return IGNORE;
             }
+
+            //avoid multi jump to the same place and confuse the compiler
         }.visit(content);
 
 
@@ -497,7 +510,7 @@ public class Compiler {
         //todo
 
 
-        func.putData(Library.NATIVE_CODE, NativeCodeBuilder.toString(), Compiler.AST_FUNCTION_DEFINED, true);
+        func.putData(Library.NATIVE_CODE, NativeCodeBuilder.toString().replaceAll(MARK_TEMPT, ""), Compiler.AST_FUNCTION_DEFINED, true);
 
         func.putData(Library.ARGS, args, Library.RETURNS, results);
 

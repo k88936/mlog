@@ -2,6 +2,9 @@
 func:
 #123456
 
+
+
+
 num add(num a,num b){
 raw("add c a b",param_a,param_b,result_c)
 return c;
@@ -17,9 +20,9 @@ num set(obj local,num target){
 
 num main() {
 
-if(x){
-y=2};
-
+while(x+2){
+x=x+1;
+}
 
 
 }
