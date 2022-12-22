@@ -332,22 +332,30 @@ Tree() {
                        sb.append(key);
                        sb.append(":");
 
+                       if (Objects.equals(key, Library.NATIVE_CODE)) {
+                           sb.append("\n\n");
+                       }
                        if (Objects.equals(key, Compiler.AST_FUNCTION_CONTENT)) {
 
 
                            //sb.append("content");
-                           sb.append("\n======\n||||||");
+                           sb.append("\n\n@CONTENT_BEGIN\n\n");
                            sb.append(node.data.get(key).toString());
-                           sb.append("||||||\n======\n");
+                           sb.append("\n@CONTENT_OVER");
 
-                       }else {
+                       } else {
                            sb.append(node.data.get(key).toString());
 
                        }
-                       sb.append(';');
-                       sb.append("\n");
-                       sb.append(this.generateBlank());
 
+                       if (Objects.equals(key, Library.NATIVE_CODE)) {
+                           sb.append("\n\n");
+                       } else {
+                           sb.append(';');
+                           sb.append("\n");
+                       }
+
+                       sb.append(this.generateBlank());
 
 
                    }

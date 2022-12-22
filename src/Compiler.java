@@ -76,124 +76,125 @@ public class Compiler {
 
     int currentOperationClass = maxPriority;
 
-    static Tree translator(Tree ast) {
-
-        //todo adapt to
-
-
-        String[] results = new String[1];
-        StringBuilder NativeCode = new StringBuilder();
-        //func is your home
-        new Tree.visitor() {
-
-            @Override
-            public Object execute(Tree.Node node, ArrayList<Object> dataFromChildren) {
-
-
-                switch (node.getStringData(Compiler.TREE_TYPE)) {
-
-
-                    case Compiler.AST_TYPE_FUNCTION: {
-//                        if (Library.RAW_FUNCTION.equals(node.getStringData(Compiler.TREE_VALUE))) {
+///    static Tree translator(Tree ast) {
 //
-//                            String rawCode = node.getFirstChild().getStringData(Compiler.TREE_VALUE);
-//
-//                            for (int i = 1; i < node.children.size(); i++) {
-//                                if (node.children.get(i) != null) {
-//                                    //todo raw must like this
-//                                    String param = node.children.get(i).getStringData(Compiler.TREE_VALUE);
-//                                    String[] paramSplited = param.split("_");
-//
-//                                    String Type = paramSplited[0];
-//                                    String Name = paramSplited[1];
+//        //todo adapt to
 //
 //
-//                                    rawCode = rawCode.replaceAll("\s" + param, "\s" + Name);
-//                                }
+//        String[] results = new String[1];
+//        StringBuilder NativeCode = new StringBuilder();
+//        //func is your home
+//        new Tree.visitor() {
 //
-//                            }
-//                            NativeCode.append("\n");
-//                            NativeCode.append(rawCode);
+//            @Override
+//            public Object execute(Tree.Node node, ArrayList<Object> dataFromChildren) {
 //
+//
+//                switch (node.getStringData(Compiler.TREE_TYPE)) {
+//
+//
+//                    case Compiler.AST_TYPE_FUNCTION: {
+////                        if (Library.RAW_FUNCTION.equals(node.getStringData(Compiler.TREE_VALUE))) {
+////
+////                            String rawCode = node.getFirstChild().getStringData(Compiler.TREE_VALUE);
+////
+////                            for (int i = 1; i < node.children.size(); i++) {
+////                                if (node.children.get(i) != null) {
+////                                    //todo raw must like this
+////                                    String param = node.children.get(i).getStringData(Compiler.TREE_VALUE);
+////                                    String[] paramSplited = param.split("_");
+////
+////                                    String Type = paramSplited[0];
+////                                    String Name = paramSplited[1];
+////
+////
+////                                    rawCode = rawCode.replaceAll("\s" + param, "\s" + Name);
+////                                }
+////
+////                            }
+////                            NativeCode.append("\n");
+////                            NativeCode.append(rawCode);
+////
+////
+////                        } else {
+//                        Object isDefined = Library.functionList.get(node.getData(Library.FUNC_ID)).getData(Compiler.AST_FUNCTION_DEFINED);
+//                        //todo dangerous
+//                        if (isDefined != null && (Boolean) isDefined) {
+//                            Compiler.compileLibrary(node.getStringData(Library.FUNC_ID));
+//                        }
+//                        String code = Library.functionList.get(node.getData(Library.FUNC_ID)).getStringData(Library.NATIVE_CODE);
+//
+//
+//                        String[] subArgs = (String[]) Library.functionList.get(node.getData(Library.FUNC_ID)).getData(Library.ARGS);
+//                        String[] subReturn = (String[]) Library.functionList.get(node.getData(Library.FUNC_ID)).getData(Library.RETURNS);
+//
+//
+//                        //todo not professional
+//                        for (int i = 0; i < node.children.size(); i++) {
+//
+//
+//                            code = code.replaceAll("\s" + subArgs[i] + "\s", "\s" + dataFromChildren.get(i).toString() + "\s");
+//                        }
+//                        if (node.getData(Compiler.RENTURN_VAR) != null) {
 //
 //                        } else {
-                        Object isDefined = Library.functionList.get(node.getData(Library.FUNC_ID)).getData(Compiler.AST_FUNCTION_DEFINED);
-                        //todo dangerous
-                        if (isDefined != null && (Boolean) isDefined) {
-                            Compiler.compileLibrary(node.getStringData(Library.FUNC_ID));
-                        }
-                        String code = Library.functionList.get(node.getData(Library.FUNC_ID)).getStringData(Library.NATIVE_CODE);
-
-
-                        String[] subArgs = (String[]) Library.functionList.get(node.getData(Library.FUNC_ID)).getData(Library.ARGS);
-                        String[] subReturn = (String[]) Library.functionList.get(node.getData(Library.FUNC_ID)).getData(Library.RETURNS);
-
-
-                        //todo not professional
-                        for (int i = 0; i < node.children.size(); i++) {
-
-
-                            code = code.replaceAll("\s" + subArgs[i] + "\s", "\s" + dataFromChildren.get(i).toString() + "\s");
-                        }
-                        if (node.getData(Compiler.RENTURN_VAR) != null) {
-
-                        } else {
-                            node.putData(Compiler.RENTURN_VAR, getTemtVarName(this.index));
-
-                        }
-                        code = code.replaceAll("\s" + subReturn[0] + "\s", "\s" + node.getStringData(Compiler.RENTURN_VAR) + "\s");
-
-
-                        NativeCode.append("\n");
-                        NativeCode.append(code);
-
-
-                    }
-
-
-                    if (node.getData(Compiler.RENTURN_VAR) != null) {
-
-
-                        //code = code.replaceAll("\s" + subReturn[0]+"\s", "\s" + node.getStringData(Compiler.RENTURN_VAR)+"\s");
-                        return node.getData(Compiler.RENTURN_VAR);
-                    } else {
-                        //todo index
-                        return getTemtVarName(this.index);
-                    }
-
-
-//                    case Compiler.AST_TYPE_VARIATION: {
+//                            node.putData(Compiler.RENTURN_VAR, getTemtVarName(this.index));
+//
+//                        }
+//                        code = code.replaceAll("\s" + subReturn[0] + "\s", "\s" + node.getStringData(Compiler.RENTURN_VAR) + "\s");
+//
+//
+//                        NativeCode.append("\n");
+//                        NativeCode.append(code);
 //
 //
 //                    }
-
-                    case Compiler.AST_TYPE_CONTROL: {
-
-
-                        //it is stupid to use multi callback
-                        if ("return".equals(node.getStringData(Compiler.TREE_VALUE))) {
-                            for (int i = 0; i < node.children.size(); i++) {
-                                results[0] = (node.getChild(i).getStringData(Compiler.TREE_VALUE));
-                            }
-                        }
-                        return IGNORE;
-                    }
-                }
-
-                return node.getStringData(Compiler.TREE_VALUE);
-                // return IGNORE;
-            }
-        }.visit(ast);
-
-
-        System.out.println(NativeCode);
-
-
-        return ast;
-    }
+//
+//
+//                    if (node.getData(Compiler.RENTURN_VAR) != null) {
+//
+//
+//                        //code = code.replaceAll("\s" + subReturn[0]+"\s", "\s" + node.getStringData(Compiler.RENTURN_VAR)+"\s");
+//                        return node.getData(Compiler.RENTURN_VAR);
+//                    } else {
+//                        //todo index
+//                        return getTemtVarName(this.index);
+//                    }
+//
+//
+////                    case Compiler.AST_TYPE_VARIATION: {
+////
+////
+////                    }
+//
+//                    case Compiler.AST_TYPE_CONTROL: {
+//
+//
+//                        //it is stupid to use multi callback
+//                        if ("return".equals(node.getStringData(Compiler.TREE_VALUE))) {
+//                            for (int i = 0; i < node.children.size(); i++) {
+//                                results[0] = (node.getChild(i).getStringData(Compiler.TREE_VALUE));
+//                            }
+//                        }
+//                        return IGNORE;
+//                    }
+//                }
+//
+//                return node.getStringData(Compiler.TREE_VALUE);
+//                // return IGNORE;
+//            }
+//        }.visit(ast);
+//
+//
+//        System.out.println(NativeCode);
+//
+//
+//        return ast;
+//    }
 
     static void compileLibrary(String id) {
 
+        //todo fatal return invalid
         Tree.Node func = Library.functionList.get(id);
         Tree.Node content = (Tree.Node) func.getData(Library.CONTENT);
 
@@ -316,7 +317,7 @@ public class Compiler {
         //todo maybe none-useful like this
 
 
-        StringBuilder NativeCode = new StringBuilder();
+        StringBuilder NativeCodeBuilder = new StringBuilder();
         //func is your home
         //generate native code
         new Tree.visitor() {
@@ -328,27 +329,26 @@ public class Compiler {
             // String surroundMarkBase;
             @Override
             public Object enter(Tree.Node parent) {
-                boolean surrounded = Compiler.AST_TYPE_EXPRESSION.equals(parent.getStringData(Compiler.TREE_TYPE))
 
-                        || Compiler.AST_TYPE_CODE_BLOCK.equals(parent.getStringData(Compiler.TREE_TYPE));
-                if (surrounded) {
-                    String surroundMarkBase = "\n" + func.getStringData(Library.FUNC_ID) + parent.getStringData(TREE_VALUE) + "_" + totalIndex;
-                    NativeCode.append(surroundMarkBase + "_START:");
-                    parent.putData(SURROUND_MARK_FRONT, surroundMarkBase + "_START:");
+                if (parent.hasParent() && (Compiler.AST_TYPE_EXPRESSION.equals(parent.getStringData(Compiler.TREE_TYPE))
+
+                        || Compiler.AST_TYPE_CODE_BLOCK.equals(parent.getStringData(Compiler.TREE_TYPE)))) {
+                    String surroundMarkBase = func.getStringData(Library.FUNC_ID) + parent.getStringData(TREE_VALUE) + "_" + totalIndex + "_START:" + "\n";
+                    NativeCodeBuilder.append(surroundMarkBase);
+                    parent.putData(SURROUND_MARK_FRONT, surroundMarkBase);
                 }
+
 
                 return super.enter(parent);
             }
 
             @Override
             public Object exit(Tree.Node parent) {
-                boolean surrounded = Compiler.AST_TYPE_EXPRESSION.equals(parent.getStringData(Compiler.TREE_TYPE))
 
-                        || Compiler.AST_TYPE_CODE_BLOCK.equals(parent.getStringData(Compiler.TREE_TYPE));
-                if (surrounded) {
-                    String surroundMarkBase = "\n" + func.getStringData(Library.FUNC_ID) + parent.getStringData(TREE_VALUE) + "_" + totalIndex;
-                    NativeCode.append(surroundMarkBase + "_END:");
-                    parent.putData(SURROUND_MARK_BACK, surroundMarkBase + "_END:");
+                if (parent.hasParent() && (Compiler.AST_TYPE_EXPRESSION.equals(parent.getStringData(Compiler.TREE_TYPE)) || Compiler.AST_TYPE_CODE_BLOCK.equals(parent.getStringData(Compiler.TREE_TYPE)))) {
+                    String surroundMarkBase = func.getStringData(Library.FUNC_ID) + parent.getStringData(TREE_VALUE) + "_" + totalIndex + "_END:" + "\n";
+                    NativeCodeBuilder.append(surroundMarkBase);
+                    parent.putData(SURROUND_MARK_BACK, surroundMarkBase);
                 }
 
                 return super.enter(parent);
@@ -356,18 +356,6 @@ public class Compiler {
 
             @Override
             public Object execute(Tree.Node node, ArrayList<Object> dataFromChildren) {
-
-//                if (node != null) {
-//                    return null;
-//                }
-
-//                switch (){
-//                    default :{
-//
-//                    }
-//
-//                }
-
 
                 switch (node.getStringData(Compiler.TREE_TYPE)) {
 
@@ -397,9 +385,9 @@ public class Compiler {
 //                            if (surrounded) {
 //                                rawCode = node.parent.getStringData(TREE_VALUE) + "_START:\n" + rawCode + "\s\n" + node.parent.getStringData(TREE_VALUE) + "_END:\n";
 //                            }
-                            NativeCode.append("\n");
-                            NativeCode.append(rawCode + "\s");
 
+                            NativeCodeBuilder.append(rawCode + "\s\n");
+                            // NativeCodeBuilder.append("");
 
                         } else //ELSE open your mouse ou no eyes
                         {
@@ -437,7 +425,7 @@ public class Compiler {
 //                                code = node.parent.getStringData(TREE_VALUE) + "_START:\n" + code + "\n" + node.parent.getStringData(TREE_VALUE) + "_END:\n";
 //                            }
                             // NativeCode.append("\n");
-                            NativeCode.append(code);
+                            NativeCodeBuilder.append(code);
 
 
                         }
@@ -471,6 +459,18 @@ public class Compiler {
 
                         //todo  also its block
 
+                        if ("if".equals(node.getStringData(Compiler.TREE_VALUE))) {
+
+                            //after expression jump area after code block
+                            String code = " jump " + dataFromChildren.get(0) + " notEqual true " + node.getLastChild().getStringData(SURROUND_MARK_BACK);
+
+                            String jumpBase = node.getFirstChild().getStringData(SURROUND_MARK_FRONT);
+                            NativeCodeBuilder.insert(NativeCodeBuilder.indexOf(jumpBase), code);
+
+
+                        }
+
+
                         //it is stupid to use multi callback
                         if ("return".equals(node.getStringData(Compiler.TREE_VALUE))) {
                             for (int i = 0; i < node.children.size(); i++) {
@@ -497,7 +497,7 @@ public class Compiler {
         //todo
 
 
-        func.putData(Library.NATIVE_CODE, NativeCode.toString(), Compiler.AST_FUNCTION_DEFINED, true);
+        func.putData(Library.NATIVE_CODE, NativeCodeBuilder.toString(), Compiler.AST_FUNCTION_DEFINED, true);
 
         func.putData(Library.ARGS, args, Library.RETURNS, results);
 
@@ -664,6 +664,7 @@ public class Compiler {
         return partOfTokens;
     }
 
+    //walk also is your parser
     Tree parser(Tree tokens) throws Exception {
         this.current = 0;
         Tree ast = new Tree();
@@ -761,18 +762,18 @@ public class Compiler {
                 }
 
                 //todo mmm
+                //todo refuse to clean multi box
 
-
-                if (AST_TYPE_CODE_BLOCK.equals(node.getStringData(TREE_TYPE))) {
-                    if (node.singleChild() && (node.getStringData(TREE_VALUE).endsWith(IGNORE))) {
-
-
-                        node.replacedBy(node.getLastChild());
-
-
-                    }
-
-                }
+//                if (AST_TYPE_CODE_BLOCK.equals(node.getStringData(TREE_TYPE))) {
+//                    if (node.singleChild() && (node.getStringData(TREE_VALUE).endsWith(IGNORE))&&AST_TYPE_CODE_BLOCK.equals(node.parent.getStringData(TREE_TYPE))) {
+//
+//
+//                        node.replacedBy(node.getLastChild());
+//
+//
+//                    }
+//
+//                }
                 //simplefy add with direct result
 
 
@@ -984,6 +985,7 @@ public class Compiler {
                     switch (tokenWithName.getStringData(TREE_VALUE)) {
                         case "if", "for", "while":
                             wantExpression = true;
+                            wantAction = true;
 
                             break;
                         case "else":

@@ -2,7 +2,10 @@
 func:
 #123456
 
-
+num add(num a,num b){
+raw("add c a b",param_a,param_b,result_c)
+return c;
+}
 
 
 num set(obj local,num target){
@@ -10,33 +13,26 @@ num set(obj local,num target){
  return local
 }
 
-num set(){
-x=1;
-return x;
+
+
+num main() {
+
+if(x){
+y=2};
+
+
+
 }
 
 
-
-
 ignore:
-num add(num a,num b){
-       raw("add c a b",param_a,param_b,result_c)
-       return c;
-       }
+
 num selfAdd(num aaa){
     result=native.add(aaa,1);
     return result
 }
 
-num main() {
 
-if(x+1){}
-
-
-
-
-
-}
 num add(num aa,num bb,num cc){
 
 result = native.add(aa,native.add(bb,cc));
