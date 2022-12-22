@@ -299,7 +299,6 @@ Tree() {
         }
 
         /**
-         * @return
          */
        public String toString() {
 
@@ -323,7 +322,7 @@ Tree() {
                    StringBuilder sb = new StringBuilder();
 
 
-                   sb.append("\r"+ this.generateBlank());
+                   sb.append("\r").append(this.generateBlank());
                    for (String key : node.data.keySet()) {
 
                        if (Objects.equals(key, CHILDREN)) continue;
@@ -364,7 +363,7 @@ Tree() {
                            dataFromChildren) {
                        sb.append(childData);
                    }
-                   sb.append(this.generateBlank() + "-}" + "\n");
+                   sb.append(this.generateBlank()).append("-}").append("\n");
                    return sb.toString();
                }
 

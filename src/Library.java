@@ -71,7 +71,7 @@ public class Library {
         //todo find in obj list to class
 
 
-        //todo maybe i can use a different way to end this
+        //todo maybe I can use a different way to end this
 
 
         for (int i = 0; i < FunctionTree.getSize(); i++) {
@@ -118,9 +118,8 @@ public class Library {
         }
 
 
-        //todo Library with out put to string job
+        //todo Library without put to string job
 
-        // throw new Exception("no such method");
 
         return new Object[]{DataType.OBJECT, UNDEFINED_FUNCTION};
 
