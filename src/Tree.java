@@ -6,7 +6,10 @@ import java.util.Objects;
 public class Tree {
     static final String CHILDREN = "children";
     Node root = new Node();
-
+Tree() {
+    root.parent = root;
+    //maybe a crazy idea, but it has to
+}
 
     Tree addNode(Node node) {
 
@@ -329,13 +332,13 @@ public class Tree {
                        sb.append(key);
                        sb.append(":");
 
-                       if (Objects.equals(key, Compiler.AST_FUNCTION_CONTENT)){
+                       if (Objects.equals(key, Compiler.AST_FUNCTION_CONTENT)) {
 
 
-                           sb.append("content");
-//                           sb.append("\n================================<<<\n");
-//                           sb.append(node.data.get(key).toString());
-//                           sb.append("\n================================>>>\n");
+                           //sb.append("content");
+                           sb.append("\n======\n||||||");
+                           sb.append(node.data.get(key).toString());
+                           sb.append("||||||\n======\n");
 
                        }else {
                            sb.append(node.data.get(key).toString());
@@ -451,7 +454,8 @@ public class Tree {
 
     static abstract class visitor {
 
-        public int index=0;
+        public int index = 0;
+        int totalIndex = 0;
         static Node currentNode;
         Object visit(Tree tree) {
             return this.visit(tree.root);
@@ -459,7 +463,9 @@ public class Tree {
         }
 
         Object visit(Node node) {
+
             int localIndex=index;
+            totalIndex++;
             index++;
             currentNode=node;
             ArrayList<Object> dataFromChildren = new ArrayList<>();
@@ -488,6 +494,7 @@ public class Tree {
         public abstract Object execute(Node node, ArrayList<Object> dataFromChildren);
 
         public Object enter(Node parent) {
+
             return null;
         }
 
