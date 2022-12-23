@@ -1,34 +1,43 @@
 
 func:
-#123456
 
 
 
+ DDDDD( num x) {
+m=x
+while (x){
 
+m=x+1
+}
+
+
+}
+
+num main() {
+
+num x= DDDDD(200);
+
+ return x
+ }
+
+num set(obj local,num target){
+ raw("set local target",num target,num local);
+ return local
+}
 num add(num a,num b){
-raw("add c a b",param_a,param_b,result_c)
+
+raw("add c a b",num a, num b,num c)
+
 return c;
 }
 
 
-num set(obj local,num target){
- raw("set local target",param_target,result_local);
- return local
-}
-
-
-
-num main() {
-
-while(x+2){
-x=x+1;
-}
-
-
-}
-
-
 ignore:
+
+
+
+
+
 
 num selfAdd(num aaa){
     result=native.add(aaa,1);

@@ -6,7 +6,7 @@ public class Library {
     public final static String FUNC_ID = "ID";
 
     static final Tree FunctionTree = new Tree();
-
+    final static String VAR_LIST = "var list";
 
     static final HashMap<String, Tree.Node> functionList = new HashMap<>();
 

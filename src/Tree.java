@@ -427,6 +427,10 @@ Tree() {
 
         }
 
+        public boolean hasKey(String key) {
+            return getData(key) != null;
+        }
+
         Node putData(String key, Object value) {
             this.data.put(key, value);
 
@@ -472,8 +476,7 @@ Tree() {
         Object visit(Node node) {
 
             int localIndex=index;
-            totalIndex++;
-            index++;
+
             currentNode=node;
             ArrayList<Object> dataFromChildren = new ArrayList<>();
             this.enter(node);
@@ -485,11 +488,12 @@ Tree() {
                 Node jump = child.jump;
                 if (jump != null) {
                     child.setJump(null);
-                    child=jump;
-                }else {
+                    child = jump;
+                } else {
                     child = child.right;
                 }
-
+                totalIndex++;
+                index++;
 
             }
             index=localIndex;
