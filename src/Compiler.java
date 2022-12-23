@@ -967,6 +967,19 @@ public class Compiler {
         library = parser(library);
 
 
+        for (Tree.Node node : library.root.children)    {
+
+            String names = node.getStringData(Compiler.TREE_VALUE);
+
+            if(names.contains("_")){
+
+                String[] optionList=names.split("_");
+            }
+
+
+
+
+        }
         //no more operation
         // library = semanticParser(library);
 
