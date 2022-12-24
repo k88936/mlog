@@ -1,0 +1,14 @@
+class unit{
+
+unit(){
+}
+
+static void bind(num index){
+//case keyword throw to next valid var function 
+
+}
+
+
+
+
+}

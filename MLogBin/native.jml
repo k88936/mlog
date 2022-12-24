@@ -1,0 +1,21 @@
+
+
+public class native {
+
+
+
+    public static void main(num x) {
+
+    }
+
+  static num add( num a, num b){
+  a=b+1+1;
+    return a ;
+    }
+
+
+
+
+
+
+}

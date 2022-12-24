@@ -5,8 +5,8 @@ import java.util.HashMap;
 public class Library {
 
 
-    public final static String FUNC_ID = "ID";
-
+    public final static String FUNC_ID = "fID";
+    public final static String CLASS_ID = "cID";
     static final Tree FunctionTree = new Tree();
     final static String VAR_LIST = "var list";
 
