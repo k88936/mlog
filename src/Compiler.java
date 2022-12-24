@@ -1,12 +1,14 @@
-import java.io.IOException;
-import java.io.File;
-//import java.io.File;
-import java.*;
+
+
+
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Objects;
 import java.util.regex.Pattern;
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 
 public class Compiler {
@@ -959,12 +961,11 @@ public class Compiler {
 
     public Tree loader(String path) throws Exception {
         String text = "";
-        try {File.
-            text = new String(new File(""));
+        try {
+            text = new String(Files.readAllBytes(Paths.get(path)));
         } catch (IOException e) {
             e.printStackTrace();
         }
-
         // this is important to and an end
         Tree mlogProject = tokenizer(text + "\nend: ");
         Tree library = preParser(mlogProject, "func");
@@ -976,8 +977,13 @@ public class Compiler {
             String names = node.getStringData(Compiler.TREE_VALUE);
 
             if(names.contains("_")){
-
                 String[] optionList=names.split("_");
+                node.putData(TREE_VALUE, optionList[0]);
+                for (int i =1 ; i < optionList.length; i++) {
+                    node.putData( optionList[0],true);
+
+                    
+                }
             }
 
 
