@@ -1,10 +1,12 @@
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.io.File;
+//import java.io.File;
+import java.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Objects;
 import java.util.regex.Pattern;
+import java.io.*;
 
 
 public class Compiler {
@@ -83,16 +85,16 @@ public class Compiler {
     static void compileLibrary(String id) {
 
         //todo fatal return invalid
-        Tree.Node func = Library.functionList.get(id);
+        final Tree.Node func = Library.functionList.get(id);
         Tree.Node content = (Tree.Node) func.getData(Library.CONTENT);
 
 
-        HashMap<String, DataType> variationMap = new HashMap<>();
+        final HashMap<String, DataType> variationMap = new HashMap<>();
 
 
         // register variables
         //todo auto capacity
-        String[] results = new String[1];
+        final String[] results = new String[1];
         //todo it seemed that i can reuse the repeated code
         new Tree.visitor() {
 
@@ -198,7 +200,7 @@ public class Compiler {
 
         final String MARK_TO_JUMP = "_TO_JUMP";
 
-        StringBuilder NativeCodeBuilder = new StringBuilder();
+        final StringBuilder NativeCodeBuilder = new StringBuilder();
         //func is your home
         //generate native code
         new Tree.visitor() {
@@ -246,7 +248,7 @@ public class Compiler {
                         if (Library.RAW_FUNCTION.equals(node.getStringData(Compiler.TREE_VALUE))) {
 
                             String rawCode = (String) dataFromChildren.get(0);
-                            NativeCodeBuilder.append(rawCode).append("\s\n");
+                            NativeCodeBuilder.append(rawCode).append(" \n");
                             return null;
                         } else //ELSE open your mouse ou no eyes
                         {
@@ -276,7 +278,7 @@ public class Compiler {
 //
 //
 //                                    //todo many func many start end
-//                                    rawCode = rawCode.replaceAll("\s" + param + "\s", "\s" + Name + "\s");
+//                                    rawCode = rawCode.replaceAll(" " + param + " ", " " + Name + " ");
 //                                }
 //
 //                            }
@@ -285,13 +287,13 @@ public class Compiler {
                             //todo confuse arg with return                 no as long as x is reapply to a value it occurs
                             //replace args
                             for (int i = 0; i < node.children.size(); i++) {
-                                code = code.replaceAll("\s" + subArgs[i] + "\s", "\s" + dataFromChildren.get(i).toString() + "\s");
+                                code = code.replaceAll(" " + subArgs[i] + " ", " " + dataFromChildren.get(i).toString() + " ");
                             }
 
                             //rerereplace tempt var
                             for (String var : varlist.keySet()) {
                                 if (var.contains("TEMPT-VAR")) {
-                                    code = code.replaceAll("\s" + var + "\s", "\s" + getTemptVarName(Integer.valueOf(var.split("_")[1]) + index - 1) + "\s");
+                                    code = code.replaceAll(" " + var + " ", " " + getTemptVarName(Integer.valueOf(var.split("_")[1]) + index - 1) + " ");
                                 } else {
 
                                 }
@@ -313,7 +315,7 @@ public class Compiler {
                             variationMap.put((String) node.getData(Compiler.RETURN_VAR), (DataType) node.getData(Compiler.AST_FUNCTION_RETURN_TYPE));
 
                             // replace result
-                            code = code.replaceAll("\s" + subReturn[0] + "\s", "\s" + node.getStringData(Compiler.RETURN_VAR) + "\s")
+                            code = code.replaceAll(" " + subReturn[0] + " ", " " + node.getStringData(Compiler.RETURN_VAR) + " ")
                             // .replaceAll("ignore", "ignore_"+totalIndex)
                             ;
 
@@ -452,7 +454,7 @@ public class Compiler {
                 continue;
             }
 
-            if (Pattern.compile("[\s,\r\n;]").matcher(character + "").find()) {
+            if (Pattern.compile("[ ,\r\n;]").matcher(character + "").find()) {
                 current++;
                 continue;
             }
@@ -529,9 +531,9 @@ public class Compiler {
         return tokens;
     }
 
-    Tree preParser(Tree tokens, String part) {
+    Tree preParser(Tree tokens, final String part) {
 
-        Tree partOfTokens = new Tree();
+        final Tree partOfTokens = new Tree();
         final boolean[] included = {false};
         new Tree.visitor() {
 
@@ -859,7 +861,9 @@ public class Compiler {
                     boolean wantAction = false;
                     boolean actAsKeyword = false;
                     switch (tokenWithName.getStringData(TREE_VALUE)) {
-                        case "if", "for", "while":
+                        case "if":
+														case"for":
+														case"while":
                             wantExpression = true;
                             wantAction = true;
 
@@ -955,8 +959,8 @@ public class Compiler {
 
     public Tree loader(String path) throws Exception {
         String text = "";
-        try {
-            text = new String(Files.readAllBytes(Paths.get(path)));
+        try {File.
+            text = new String(new File(""));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -984,7 +988,7 @@ public class Compiler {
         // library = semanticParser(library);
 
 
-        String nameSpace = path.substring(path.lastIndexOf("/") + 1, path.lastIndexOf("."));
+        final String nameSpace = path.substring(path.lastIndexOf("/") + 1, path.lastIndexOf("."));
 
 
         //give it an id
@@ -1033,7 +1037,7 @@ public class Compiler {
     //only designed for main
     public Tree semanticParser(Tree ast) {
 
-        HashMap<String, DataType> variationMap = new HashMap<>();
+        final HashMap<String, DataType> variationMap = new HashMap<>();
 
         //make clear every type
         new Tree.visitor() {
@@ -1150,7 +1154,7 @@ public class Compiler {
         for (String argument : arguments) {
 
 
-            code = code.replaceAll("\\s" + codeSetting[++i] + "\\s", "\\s" + argument + "\\s");
+            code = code.replaceAll(" " + codeSetting[++i] + " ", " " + argument + " ");
 
         }
 

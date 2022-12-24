@@ -1,6 +1,4 @@
-/**
- *
- */
+
 public class Main {
     static Compiler compiler = new Compiler();
 

@@ -70,7 +70,7 @@ public class DataType implements Serializable {
 
     public String getAllChildrenNames() {
 
-        StringBuilder builder = new StringBuilder();
+        final StringBuilder builder = new StringBuilder();
         new Tree.visitor() {
 
             @Override

@@ -304,7 +304,7 @@ Tree() {
 
            return (String) new visitor() {
 
-               static int level = 0;
+                int level = 0;
 
                String generateBlank(){
                    char[] chs = new char[level * 4];
@@ -421,7 +421,7 @@ Tree() {
             if (this.data.containsKey(key)) {
                 return this.getData(key).toString();
             } else {
-                return "\s";
+                return "";
             }
 
 
