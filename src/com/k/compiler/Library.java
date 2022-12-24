@@ -1,3 +1,5 @@
+package com.k.compiler;
+
 import java.util.HashMap;
 
 public class Library {
@@ -118,13 +120,12 @@ public class Library {
         }
 
 
-        //todo Library without put to string job
+        //todo com.k.compiler.Library without put to string job
 
 
         return new Object[]{DataType.OBJECT, UNDEFINED_FUNCTION};
 
     }
-
 
 
 }

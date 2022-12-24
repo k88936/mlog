@@ -1,9 +1,11 @@
+package com.k.compiler;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 public class DataType implements Serializable {
-    static final HashMap<String, DataType> MAP= new HashMap();
+    static final HashMap<String, DataType> MAP = new HashMap();
     static final Tree DataTypes = new Tree();
     public final String name;
     Tree.Node node = new Tree.Node();
@@ -14,6 +16,7 @@ public class DataType implements Serializable {
     static {
         DataTypes.root = OBJECT.node;
     }
+
     private DataType(String name) {
 
         this.name = name;
@@ -44,22 +47,20 @@ public class DataType implements Serializable {
         }else return this.name.equals(other.name);
 
     }
+
     //terrible fix
     public static boolean isInstanceOf(DataType local, DataType target) {
 
         if (OBJECT.equals(target)|| local.equals(target)) {
             return true;
-        }
-        else {
+        } else {
             if (local.equals(OBJECT) ) {
                 return false;
             }else {
-               return isInstanceOf(local.father, target);
+                return isInstanceOf(local.father, target);
             }
 
         }
-
-
 
 
     }
@@ -79,7 +80,6 @@ public class DataType implements Serializable {
                 builder.append('|');
                 return null;
             }
-
 
 
         }.visit(this.node);

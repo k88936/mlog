@@ -1,3 +1,5 @@
+package com.k.compiler;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -6,9 +8,10 @@ import java.util.Objects;
 public class Tree {
     static final String CHILDREN = "children";
     Node root = new Node();
-Tree() {
-    root.parent = root;
-    //maybe a crazy idea, but it has to
+
+    Tree() {
+        root.parent = root;
+        //maybe a crazy idea, but it has to
 }
 
     Tree addNode(Node node) {
@@ -51,12 +54,10 @@ Tree() {
     }
 
 
-
-
     public String toString() {
         return this.root.toString();
 
-       // return "";
+        // return "";
     }
 
     public Node getNode(String name, String library) {
@@ -169,6 +170,7 @@ Tree() {
         Node getChild(int index) {
             return this.children.get(index);
         }
+
         Node getChild(String key, Object value){
             for (Node node : this.children) {
                 if (node.data.containsKey(key) && node.data.get(key).equals(value)) {
@@ -201,6 +203,7 @@ Tree() {
             return this;
 
         }
+
         public Node setJump(Node node ){
             this .jump = node;
             return this;
@@ -210,14 +213,6 @@ Tree() {
         //exactly copyFrom
         // it will cause lost some node if input right
         public Node replacedBy(Node node) {
-
-
-
-
-
-
-
-
 
 
             if(node==this.right){
@@ -256,6 +251,7 @@ Tree() {
         public boolean hasChildren() {
             return this.children.size() > 0;
         }
+
         public boolean hasParent() {
             return this.parent != null;
         }
@@ -300,85 +296,85 @@ Tree() {
 
         /**
          */
-       public String toString() {
+        public String toString() {
 
-           return (String) new visitor() {
+            return (String) new visitor() {
 
                 int level = 0;
 
-               String generateBlank(){
-                   char[] chs = new char[level * 4];
-                   for (int i = 0; i < level * 4; i++) {
-                       chs[i] = '-';
-                   }
+                String generateBlank(){
+                    char[] chs = new char[level * 4];
+                    for (int i = 0; i < level * 4; i++) {
+                        chs[i] = '-';
+                    }
 
-                   return new String(chs);
-               }
+                    return new String(chs);
+                }
 
-               @Override
-               public Object execute(Node node, ArrayList<Object> dataFromChildren) {
-
-
-                   StringBuilder sb = new StringBuilder();
+                @Override
+                public Object execute(Node node, ArrayList<Object> dataFromChildren) {
 
 
-                   sb.append("\r").append(this.generateBlank());
-                   for (String key : node.data.keySet()) {
-
-                       if (Objects.equals(key, CHILDREN)) continue;
-                       if (Objects.equals(key, Library.ARGS)) continue;
-                       if (Objects.equals(key, Library.RETURNS)) continue;
-                       sb.append(key);
-                       sb.append(":");
-
-                       if (Objects.equals(key, Library.NATIVE_CODE)) {
-                           sb.append("\n\n");
-                       }
-                       if (Objects.equals(key, Compiler.AST_FUNCTION_CONTENT)) {
+                    StringBuilder sb = new StringBuilder();
 
 
-                           //sb.append("content");
-                           sb.append("\n\n@CONTENT_BEGIN\n\n");
-                           sb.append(node.data.get(key).toString());
-                           sb.append("\n@CONTENT_OVER");
+                    sb.append("\r").append(this.generateBlank());
+                    for (String key : node.data.keySet()) {
 
-                       } else {
-                           sb.append(node.data.get(key).toString());
+                        if (Objects.equals(key, CHILDREN)) continue;
+                        if (Objects.equals(key, Library.ARGS)) continue;
+                        if (Objects.equals(key, Library.RETURNS)) continue;
+                        sb.append(key);
+                        sb.append(":");
 
-                       }
-
-                       if (Objects.equals(key, Library.NATIVE_CODE)) {
-                           sb.append("\n\n");
-                       } else {
-                           sb.append(';');
-                           sb.append("\n");
-                       }
-
-                       sb.append(this.generateBlank());
+                        if (Objects.equals(key, Library.NATIVE_CODE)) {
+                            sb.append("\n\n");
+                        }
+                        if (Objects.equals(key, Compiler.AST_FUNCTION_CONTENT)) {
 
 
-                   }
-                   sb.append("-{" + "\n");
-                   for (Object childData :
-                           dataFromChildren) {
-                       sb.append(childData);
-                   }
-                   sb.append(this.generateBlank()).append("-}").append("\n");
-                   return sb.toString();
-               }
+                            //sb.append("content");
+                            sb.append("\n\n@CONTENT_BEGIN\n\n");
+                            sb.append(node.data.get(key).toString());
+                            sb.append("\n@CONTENT_OVER");
 
-               @Override
-               public Object enter(Node startPoint) {
-                   level++;
-                   return null;
-               }
+                        } else {
+                            sb.append(node.data.get(key).toString());
 
-               @Override
-               public Object exit(Node startPoint) {
-                   level--;
-                   return null;
-               }
-           }.visit(this);
+                        }
+
+                        if (Objects.equals(key, Library.NATIVE_CODE)) {
+                            sb.append("\n\n");
+                        } else {
+                            sb.append(';');
+                            sb.append("\n");
+                        }
+
+                        sb.append(this.generateBlank());
+
+
+                    }
+                    sb.append("-{" + "\n");
+                    for (Object childData :
+                            dataFromChildren) {
+                        sb.append(childData);
+                    }
+                    sb.append(this.generateBlank()).append("-}").append("\n");
+                    return sb.toString();
+                }
+
+                @Override
+                public Object enter(Node startPoint) {
+                    level++;
+                    return null;
+                }
+
+                @Override
+                public Object exit(Node startPoint) {
+                    level--;
+                    return null;
+                }
+            }.visit(this);
 
 
         }
@@ -468,6 +464,7 @@ Tree() {
         public int index = 0;
         int totalIndex = 0;
         static Node currentNode;
+
         Object visit(Tree tree) {
             return this.visit(tree.root);
 
