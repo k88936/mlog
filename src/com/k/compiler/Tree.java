@@ -10,7 +10,7 @@ public class Tree {
     Node root = new Node();
 
     Tree() {
-        root.parent = root;
+       // root.parent = root;
         //maybe a crazy idea, but it has to
 }
 
@@ -30,9 +30,28 @@ public class Tree {
 
 
     Node getNode(int index) {
-        return this.root.children.get(index);
+
+        return this.root.getChild(index);
 
     }
+
+    Node findNode(String key, Object value) {
+
+        return this.root.findChild(key, value);
+    }
+
+    Node findNextNode(String key, Object value) {
+
+        return this.root.findNextChild(key, value);
+
+    }
+
+    Tree findNodeReset() {
+
+        this.root.findReset();
+        return this;
+    }
+
 
     int getSize() {
         return this.root.children.size();
@@ -54,14 +73,14 @@ public class Tree {
     }
 
 
-    public String toString() {
+    public String toStringgg() {
         return this.root.toString();
 
         // return "";
     }
 
     public Node getNode(String name, String library) {
-        return this.root.getChild(name, library);
+        return this.root.findChild(name, library);
 
     }
 
@@ -167,17 +186,39 @@ public class Tree {
             return null;
         }
 
+        int findIndex = 0;
+
         Node getChild(int index) {
-            return this.children.get(index);
+            if (index < this.children.size()) {
+                return this.children.get(index);
+            }
+            return null;
+
         }
 
-        Node getChild(String key, Object value){
+        Node findChild(String key, Object value) {
             for (Node node : this.children) {
                 if (node.data.containsKey(key) && node.data.get(key).equals(value)) {
                     return node;
                 }
             }
             return null;
+        }
+
+        Node findNextChild(String key, Object value) {
+            for (findIndex = 0; findIndex < children.size(); findIndex++) {
+                Node node = children.get(findIndex);
+                if (node.data.containsKey(key) && node.data.get(key).equals(value)) {
+                    return node;
+                }
+
+            }
+            return null;
+        }
+
+        Node findReset() {
+            findIndex = 0;
+            return this;
         }
 
         public Node getRight() {
@@ -322,12 +363,12 @@ public class Tree {
                     for (String key : node.data.keySet()) {
 
                         if (Objects.equals(key, CHILDREN)) continue;
-                        if (Objects.equals(key, Library.ARGS)) continue;
-                        if (Objects.equals(key, Library.RETURNS)) continue;
+                        if (Objects.equals(key, Compiler.Library.ARGS)) continue;
+                        if (Objects.equals(key, Compiler.Library.RETURNS)) continue;
                         sb.append(key);
                         sb.append(":");
 
-                        if (Objects.equals(key, Library.NATIVE_CODE)) {
+                        if (Objects.equals(key, Compiler.Library.NATIVE_CODE)) {
                             sb.append("\n\n");
                         }
                         if (Objects.equals(key, Compiler.AST_FUNCTION_CONTENT)) {
@@ -343,7 +384,7 @@ public class Tree {
 
                         }
 
-                        if (Objects.equals(key, Library.NATIVE_CODE)) {
+                        if (Objects.equals(key, Compiler.Library.NATIVE_CODE)) {
                             sb.append("\n\n");
                         } else {
                             sb.append(';');

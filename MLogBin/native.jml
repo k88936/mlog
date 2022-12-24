@@ -1,21 +1,30 @@
-
+//java
 
 public class native {
 
 
-
-    public static void main(num x) {
-
-    }
-
-  static num add( num a, num b){
-  a=b+1+1;
-    return a ;
-    }
-
-
-
-
-
+ void main(){
 
 }
+
+
+
+//      hidden  static num add(num a,num b){
+//native("add c a b",num a, num b,num c)
+//
+//        return num c;
+//        }
+
+
+
+
+//static  num set(obj local,num target){
+//        native("set local target",num target,num local);
+//        return num local;
+//        }
+
+       num add(){
+    }
+
+
+        }
