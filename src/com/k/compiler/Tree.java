@@ -46,6 +46,10 @@ public class Tree {
 
     }
 
+    Node findOnlyNode(String key, Object value) {
+        return this.root.findOnlyChild(key, value);
+    }
+
     Tree findNodeReset() {
 
         this.root.findReset();
@@ -205,13 +209,24 @@ public class Tree {
             return null;
         }
 
+        Node findOnlyChild(String key, Object value) {
+            findIndex = 0;
+            Node target = findNextChild(key, value);
+            if (findNextChild(key, value) == null) {
+                return target;
+            } else {
+                return null;
+            }
+        }
+
         Node findNextChild(String key, Object value) {
-            for (; findIndex < children.size(); findIndex++) {
+            while (findIndex < children.size()) {
                 Node node = children.get(findIndex);
                 if (node.data.containsKey(key) && node.data.get(key).equals(value)) {
                     return node;
                 }
 
+                findIndex++;
             }
             return null;
         }

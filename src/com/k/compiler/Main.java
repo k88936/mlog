@@ -12,7 +12,7 @@ public class Main {
 
     static {
         try {
-            code = new String(Files.readAllBytes(Paths.get("MLogBin/processor_04.Jmlog")));
+            code = new String(Files.readAllBytes(Paths.get("Jmlog_lib/processor_04.Jmlog")));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

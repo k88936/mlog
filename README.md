@@ -1,5 +1,6 @@
 # Jmlog
 
+![logo](https://gitee.com/k88936/Jmlog/raw/master/images/logo.png)
 #### introduction:
 
 * this is a compiler

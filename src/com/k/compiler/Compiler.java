@@ -2,7 +2,10 @@ package com.k.compiler;
 
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 import static com.k.compiler.Compiler.Library.functionMap;
@@ -99,7 +102,7 @@ public class Compiler {
     final static String CONTROL_PATTERN_SIGN = "[+\\-*/=<>|&!%^]";
     final static String CONTROL_PATTERN = "if|else|while|break|continue|return|switch";
 
-    final static String KEY_WORD_PATTERN = "public|private|protected|static|class|new|hidden";
+    final static String KEY_WORD_PATTERN = "public|private|protected|static|class|hidden";
 
     static final DataType DATA_VOID, DATA_ITEM_TYPE, DATA_UNIT, DATA_BLOCK, DATA_STRING, DATA_NUMBER, DATA_OBJECT;
     static final String TYPE_PATTERN;
@@ -147,11 +150,134 @@ public class Compiler {
         //not touch it
         return "TEMPT-VAR_" + index;
     }
+    final static String IS_CONSTRUNCTOR = "is constructor";
+    final static String AST_FUNCTION_RETURN_NEW_OBJECT = "new Object";
+    static void analyzing(Tree jst) {
+
+        for (String id : functionMap.keySet()) {
+
+            if ((Boolean) functionMap.get(id).getData(Compiler.AST_FUNCTION_DEFINED)) {
+                continue;
+            }
+
+            Compiler.analysis(id);
+
+        }
+
+        System.out.println("library compile complete: " + functionMap.size());
+        System.out.println("----------------------------------------------------------------------------------------");
+
+        for (Tree.Node fc : functionMap.values()) {
+
+            if (fc.getData(AST_VAR_FUNC_CLASS_KEYWORD) != null) {
+
+                HashSet hp = (HashSet) fc.getData(AST_VAR_FUNC_CLASS_KEYWORD);
+                if (hp.contains("hidden") || hp.contains("private")) {
+                    //continue;
+                }
+
+            }
+            System.out.println(fc);
+            System.out.println("----------------------------------------------------------------------------------------");
+
+        }
+        System.out.println("================================================================================");
+
+    }
 
     static Tree loader(Tree jst) throws Exception {
 
         //String code=" ";
 
+        new Tree.visitor() {
+
+            static final StringBuilder namespace = new StringBuilder("project");
+
+            @Override
+            public Object enter(Tree.Node node) {
+                if (Compiler.AST_TYPE_CLASS.equals(node.getStringData(Compiler.TREE_TYPE))) {
+
+
+                    namespace.append('.').append(node.getStringData(Compiler.TREE_VALUE));
+                    node.putData(Library.CLASS_ID, namespace.toString());
+                    DataType.createDataType(namespace.toString());
+                }
+
+                return null;
+            }
+
+            public Object exit(Tree.Node node) {
+                if (Compiler.AST_TYPE_CLASS.equals(node.getStringData(Compiler.TREE_TYPE))) {
+
+
+                    namespace.delete(namespace.lastIndexOf("."), namespace.length());
+                }
+                return null;
+            }
+
+            @Override
+            public Object execute(Tree.Node node, ArrayList<Object> dataFromChildren) {
+
+////                if (node.hasParent() && Compiler.AST_TYPE_FUNCTION.equals(node.parent.getStringData(Compiler.TREE_TYPE))) {
+////                    return node.getData(Compiler.AST_VARIATION_DATA_TYPE);
+////
+////
+////
+////
+////                }
+//
+//                if (Compiler.AST_TYPE_FUNCTION.equals(node.getStringData(Compiler.TREE_TYPE))) {
+//
+//
+//                    if ((boolean) node.getData(Compiler.AST_FUNCTION_DEFINED)) {
+//
+//                        if (node.getStringData(Compiler.TREE_VALUE).contains(".")) {
+//
+//
+//
+//
+//                            //StringBuilder sb = new StringBuilder(namespace.toString()).append('.').append(node.getStringData(Compiler.TREE_VALUE));
+//                            node.putData(Library.FUNC_ID, node.getStringData(Compiler.TREE_VALUE));
+//                            node.putData(Library.FUNC_SHORT_ID, node.getStringData(Compiler.TREE_VALUE));
+////                            String[] objOriSet = node.getStringData(Compiler.TREE_VALUE).split("\\.");
+////
+////                            node.putData(Compiler.OBJ_ORI_INVOKER, objOriSet[0]).putData(Compiler.OBJ_ORI_FUNC, objOriSet[objOriSet.length - 1]);
+//
+//
+//                        } else {
+//
+//                            node.putData(Library.FUNC_ID, namespace.toString() + '.' + node.getStringData(Compiler.TREE_VALUE));
+//                            node.putData(Library.FUNC_SHORT_ID, namespace.toString() + '.' + node.getStringData(Compiler.TREE_VALUE));
+//                        }
+//
+//
+//                    } else {
+//
+//                        //game begins
+//                        StringBuilder sb = new StringBuilder(namespace.toString()).append('.').append(node.getStringData(Compiler.TREE_VALUE));
+//
+//                        node.putData(Library.FUNC_SHORT_ID, sb.toString());
+//                        // no need consider func in func
+//                        for (Tree.Node dt : node.getFirstChild().children) {
+//
+//                            if (dt != null) {
+//                                sb.append('_').append(dt.getData(Compiler.AST_VARIATION_DATA_TYPE));
+//                            }
+//                        }
+//
+//
+//                        node.putData(Library.FUNC_ID, sb.toString());
+//                        Library.addFunction(node);
+//
+//                    }
+//
+//
+//                }
+                return null;
+            }
+
+
+        }.visit(jst);
 
         new Tree.visitor() {
 
@@ -192,30 +318,51 @@ public class Compiler {
                 if (Compiler.AST_TYPE_FUNCTION.equals(node.getStringData(Compiler.TREE_TYPE))) {
 
 
+                    String value = node.getStringData(Compiler.TREE_VALUE);
                     if ((boolean) node.getData(Compiler.AST_FUNCTION_DEFINED)) {
+
 
                         if (node.getStringData(Compiler.TREE_VALUE).contains(".")) {
 
                             //todo java.jvm.compile assurt it is not obj
+
+
+                            if (value.contains("project.")) {
+                                node.putData(Library.FUNC_ID, value);
+                                node.putData(Library.FUNC_SHORT_ID, value);
+                            } else {
+                                node.putData(Library.FUNC_ID, "project." + value);
+                                node.putData(Library.FUNC_SHORT_ID, "project." + value);
+                            }
+
                             //StringBuilder sb = new StringBuilder(namespace.toString()).append('.').append(node.getStringData(Compiler.TREE_VALUE));
-                            node.putData(Library.FUNC_ID, node.getStringData(Compiler.TREE_VALUE));
-                            node.putData(Library.FUNC_SHORT_ID, node.getStringData(Compiler.TREE_VALUE));
+
+
 //                            String[] objOriSet = node.getStringData(Compiler.TREE_VALUE).split("\\.");
-//
-//                            node.putData(Compiler.OBJ_ORI_INVOKER, objOriSet[0]).putData(Compiler.OBJ_ORI_FUNC, objOriSet[objOriSet.length - 1]);
+////
+//                          node.putData(Compiler.OBJ_ORI_INVOKER, objOriSet[0]).putData(Compiler.OBJ_ORI_FUNC, objOriSet[objOriSet.length - 1]);
 
 
                         } else {
 
-                            node.putData(Library.FUNC_ID, namespace.toString() + '.' + node.getStringData(Compiler.TREE_VALUE));
-                            node.putData(Library.FUNC_SHORT_ID, namespace.toString() + '.' + node.getStringData(Compiler.TREE_VALUE));
+                            node.putData(Library.FUNC_ID, namespace.toString() + '.' + value);
+                            node.putData(Library.FUNC_SHORT_ID, namespace.toString() + '.' + value);
+
+                        }
+
+
+                        if (Compiler.AST_FUNCTION_RETURN_NEW_OBJECT.equals(node.getStringData(Compiler.AST_FUNCTION_RETURN_TYPE))) {
+
+
+                            node.putData(Compiler.AST_FUNCTION_RETURN_TYPE, DataType.getDataType(node.getStringData(Library.FUNC_ID)));
                         }
 
 
                     } else {
 
+
                         //game begins
-                        StringBuilder sb = new StringBuilder(namespace.toString()).append('.').append(node.getStringData(Compiler.TREE_VALUE));
+                        StringBuilder sb = new StringBuilder(namespace.toString()).append('.').append(value);
 
                         node.putData(Library.FUNC_SHORT_ID, sb.toString());
                         // no need consider func in func
@@ -228,6 +375,15 @@ public class Compiler {
 
 
                         node.putData(Library.FUNC_ID, sb.toString());
+
+
+                        //
+                        if (node.parent.parent.getStringData(TREE_VALUE).equals(value)) {
+                            node.putData(Compiler.AST_FUNCTION_RETURN_TYPE, DataType.getDataType(node.getStringData(Library.FUNC_ID)));
+                            node.putData(Compiler.IS_CONSTRUNCTOR, true);
+                        }
+
+
                         Library.addFunction(node);
 
                     }
@@ -244,37 +400,175 @@ public class Compiler {
         return jst;
     }
 
-    static void analyzing(Tree jst) {
+    @Deprecated
+    static Tree preParser(Tree tokens, final String part) {
 
-        for (String id : functionMap.keySet()) {
+        final Tree partOfTokens = new Tree();
+        final boolean[] included = {false};
+        new Tree.visitor() {
 
-            if ((Boolean) functionMap.get(id).getData(Compiler.AST_FUNCTION_DEFINED)) {
+            // error at add the parent to the new one
+            // this is right when use two arguments
+
+            @Override
+            public Object execute(Tree.Node child, ArrayList<Object> dataFromChildren) {
+
+
+                if (TREE_TOKEN_NAME.equals(child.getStringData(TREE_TYPE)) && child.getStringData(TREE_VALUE).endsWith(":")) {
+
+                    if (child.getStringData(TREE_VALUE).contains(part) && !included[0]) {
+
+                        included[0] = true;
+
+                        return null;
+                    } else {
+                        included[0] = false;
+                    }
+
+                }
+                if (included[0]) {
+                    partOfTokens.addNode(child);
+
+                }
+
+                return null;
+
+            }
+
+
+        }.visit(tokens);
+
+        return partOfTokens;
+    }
+
+    static Tree tokenizer(String input) throws Exception {
+
+        input = input + '\n';
+        int current = 0;
+
+
+        Tree tokens = new Tree();
+        while (current < input.length()) {
+
+            char character = input.charAt(current);
+
+            //System.out.println(character);
+            if (Pattern.compile("[(){}\\[\\]]").matcher(String.valueOf(character)).find()) {
+
+
+                tokens.addNode(new Tree.Node(TREE_TYPE, TREE_TOKEN_PAREN, TREE_VALUE, character));
+                current++;
+                continue;
+            }
+            //+-*/     WARNING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            if (Pattern.compile(CONTROL_PATTERN_SIGN).matcher(String.valueOf(character)).find()) {
+
+                StringBuilder value = new StringBuilder();
+                if (character == '/' && input.charAt(current + 1) == '/') {
+
+                    while (!Pattern.compile("[\n\r]").matcher(String.valueOf(character)).find()) {
+
+
+                        // value.append(character);
+                        character = input.charAt(++current);
+
+
+                    }
+                    continue;
+
+
+                } else {
+                    while (Pattern.compile(CONTROL_PATTERN_SIGN).matcher(String.valueOf(character)).find()) {
+
+
+                        value.append(character);
+                        character = input.charAt(++current);
+
+
+                    }
+
+                }
+
+
+                tokens.addNode(new Tree.Node(TREE_TYPE, AST_TYPE_OPERATION, TREE_VALUE, value.toString()));
                 continue;
             }
 
-            Compiler.analysis(id);
-
-        }
-
-        System.out.println("library compile complete: " + functionMap.size());
-        System.out.println("----------------------------------------------------------------------------------------");
-
-        for (Tree.Node fc : functionMap.values()) {
-
-            if (fc.getData(AST_VAR_FUNC_CLASS_KEYWORD) != null) {
-
-                HashSet hp = (HashSet) fc.getData(AST_VAR_FUNC_CLASS_KEYWORD);
-                if (hp.contains("hidden") || hp.contains("private")) {
-                    //continue;
-                }
-
+            if (Pattern.compile("[ ,\r\n;]").matcher(character + "").find()) {
+                current++;
+                continue;
             }
-            System.out.println(fc);
-            System.out.println("----------------------------------------------------------------------------------------");
+//            if (Pattern.compile("#").matcher(character + "").find()) {
+//
+//                // StringBuilder value = new StringBuilder();
+//                while (!Pattern.compile("[\n\r]").matcher(character + "").find()) {
+//
+//
+//                    // value.append(character);
+//                    character = input.charAt(++current);
+//
+//
+//                }
+//                continue;
+//            }
+
+
+            if (Pattern.compile("[0-9]").matcher(String.valueOf(character)).find()) {
+
+                StringBuilder value = new StringBuilder();
+
+                while (Pattern.compile("[0-9.]").matcher(String.valueOf(character)).find()) {
+
+
+                    value.append(character);
+                    character = input.charAt(++current);
+
+
+                }
+                // current++;
+                tokens.addNode(new Tree.Node(TREE_TYPE, TREE_TOKEN_NUMBER, TREE_VALUE, value.toString()));
+                continue;
+            }
+
+
+            if (character == '"') {
+                character = input.charAt(++current);
+                StringBuilder value = new StringBuilder();
+
+                while (character != '"') {
+                    value.append(character);
+                    character = input.charAt(++current);
+                }
+                current++;
+                tokens.addNode(new Tree.Node(TREE_TYPE, TREE_TOKEN_STRING, TREE_VALUE, value));
+                continue;
+            }
+
+
+            //TODO upper litter
+            if (Pattern.compile("[a-z]|[A-Z]|[_]").matcher(character + "").find()) {
+
+                StringBuilder value = new StringBuilder();
+                while (Pattern.compile("[a-z]|[A-Z]|[.:_]|[0-9]").matcher(character + "").find()) {
+
+
+                    value.append(character);
+                    character = input.charAt(++current);
+
+
+                }
+                // current++;
+                tokens.addNode(new Tree.Node(TREE_TYPE, TREE_TOKEN_NAME, TREE_VALUE, value.toString()));
+                continue;
+            }
+
+
+            throw new Exception("I don't know what this character is: " + character);
 
         }
-        System.out.println("================================================================================");
 
+
+        return tokens;
     }
 
     static void analysis(String id) {
@@ -342,8 +636,17 @@ public class Compiler {
                             //todo unify var with type
 
                             //adjust before or after set
+                            String Anyid = node.getStringData(Library.FUNC_SHORT_ID);
 
-                            Object[] information = Library.getReturnDataType(node.getStringData(Library.FUNC_SHORT_ID), argTypes);
+                            if (Compiler.AST_FUNCTION_RETURN_NEW_OBJECT.equals(node.getStringData(Compiler.AST_FUNCTION_RETURN_TYPE))) {
+                                Anyid = Anyid + '.' + node.getStringData(TREE_VALUE);
+                                node.putData(Library.FUNC_SHORT_ID, Anyid);
+                            }
+
+                            //id is undeclared waiting for compile
+                            Object[] information = Library.getReturnDataType(Anyid, argTypes);
+
+
                             node.putData(Compiler.AST_FUNCTION_RETURN_TYPE, information[0]);
 
                             node.putData(Compiler.AST_FUNCTION_ID, information[1]);
@@ -561,7 +864,12 @@ public class Compiler {
                     }
                     case Compiler.AST_TYPE_EXPRESSION: {
                         //
-                        return dataFromChildren.get(0);
+                        if (dataFromChildren.isEmpty()) {
+                            return null;
+                        } else {
+                            return dataFromChildren.get(0);
+                        }
+
                     }
                     //   todo all the replacement is at function parent
 
@@ -623,177 +931,6 @@ public class Compiler {
 
     }
 
-    @Deprecated
-    static Tree preParser(Tree tokens, final String part) {
-
-        final Tree partOfTokens = new Tree();
-        final boolean[] included = {false};
-        new Tree.visitor() {
-
-            // error at add the parent to the new one
-            // this is right when use two arguments
-
-            @Override
-            public Object execute(Tree.Node child, ArrayList<Object> dataFromChildren) {
-
-
-                if (TREE_TOKEN_NAME.equals(child.getStringData(TREE_TYPE)) && child.getStringData(TREE_VALUE).endsWith(":")) {
-
-                    if (child.getStringData(TREE_VALUE).contains(part) && !included[0]) {
-
-                        included[0] = true;
-
-                        return null;
-                    } else {
-                        included[0] = false;
-                    }
-
-                }
-                if (included[0]) {
-                    partOfTokens.addNode(child);
-
-                }
-
-                return null;
-
-            }
-
-
-        }.visit(tokens);
-
-        return partOfTokens;
-    }
-
-    static Tree tokenizer(String input) throws Exception {
-
-        input = input + '\n';
-        int current = 0;
-
-
-        Tree tokens = new Tree();
-        while (current < input.length()) {
-
-            char character = input.charAt(current);
-
-            //System.out.println(character);
-            if (Pattern.compile("[(){}\\[\\]]").matcher(String.valueOf(character)).find()) {
-
-
-                tokens.addNode(new Tree.Node(TREE_TYPE, TREE_TOKEN_PAREN, TREE_VALUE, character));
-                current++;
-                continue;
-            }
-            //+-*/     WARNING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            if (Pattern.compile(CONTROL_PATTERN_SIGN).matcher(String.valueOf(character)).find()) {
-
-                StringBuilder value = new StringBuilder();
-                if (character == '/' && input.charAt(current + 1) == '/') {
-
-                    while (!Pattern.compile("[\n\r]").matcher(String.valueOf(character)).find()) {
-
-
-                        // value.append(character);
-                        character = input.charAt(++current);
-
-
-                    }
-                    continue;
-
-
-                } else {
-                    while (Pattern.compile(CONTROL_PATTERN_SIGN).matcher(String.valueOf(character)).find()) {
-
-
-                        value.append(character);
-                        character = input.charAt(++current);
-
-
-                    }
-
-                }
-
-
-                tokens.addNode(new Tree.Node(TREE_TYPE, AST_TYPE_OPERATION, TREE_VALUE, value.toString()));
-                continue;
-            }
-
-            if (Pattern.compile("[ ,\r\n;]").matcher(character + "").find()) {
-                current++;
-                continue;
-            }
-//            if (Pattern.compile("#").matcher(character + "").find()) {
-//
-//                // StringBuilder value = new StringBuilder();
-//                while (!Pattern.compile("[\n\r]").matcher(character + "").find()) {
-//
-//
-//                    // value.append(character);
-//                    character = input.charAt(++current);
-//
-//
-//                }
-//                continue;
-//            }
-
-
-            if (Pattern.compile("[0-9]").matcher(String.valueOf(character)).find()) {
-
-                StringBuilder value = new StringBuilder();
-
-                while (Pattern.compile("[0-9.]").matcher(String.valueOf(character)).find()) {
-
-
-                    value.append(character);
-                    character = input.charAt(++current);
-
-
-                }
-                // current++;
-                tokens.addNode(new Tree.Node(TREE_TYPE, TREE_TOKEN_NUMBER, TREE_VALUE, value.toString()));
-                continue;
-            }
-
-
-            if (character == '"') {
-                character = input.charAt(++current);
-                StringBuilder value = new StringBuilder();
-
-                while (character != '"') {
-                    value.append(character);
-                    character = input.charAt(++current);
-                }
-                current++;
-                tokens.addNode(new Tree.Node(TREE_TYPE, TREE_TOKEN_STRING, TREE_VALUE, value));
-                continue;
-            }
-
-
-            //TODO upper litter
-            if (Pattern.compile("[a-z]|[A-Z]|[_]").matcher(character + "").find()) {
-
-                StringBuilder value = new StringBuilder();
-                while (Pattern.compile("[a-z]|[A-Z]|[.:_]|[0-9]").matcher(character + "").find()) {
-
-
-                    value.append(character);
-                    character = input.charAt(++current);
-
-
-                }
-                // current++;
-                tokens.addNode(new Tree.Node(TREE_TYPE, TREE_TOKEN_NAME, TREE_VALUE, value.toString()));
-                continue;
-            }
-
-
-            throw new Exception("I don't know what this character is: " + character);
-
-        }
-
-
-        return tokens;
-    }
-
     //walk also is your com.k.compiler.parser
     static Tree parser(Tree tokens) throws Exception {
         current = 0;
@@ -803,6 +940,7 @@ public class Compiler {
 
 
 //a new tree is created
+        //in case null!!!!!!!!!!!!!!!!
         tokens.addNode(new Tree.Node(TREE_TYPE, "", TREE_VALUE, ""));
         while (current < tokens.root.children.size()) {
             ast.addNode(Compiler.walk(tokens));
@@ -1016,21 +1154,23 @@ public class Compiler {
 
     }
 
+    //todo class variation
     private static Tree.Node walk(Tree tokens) throws Exception {
 
         //an awful design to use parems here
 
 
-        Tree.Node CurrentToken = tokens.getNode(current);
-        current++;
-        if (CurrentToken == null) {
+        Tree.Node currentToken = tokens.getNode(current);
+
+        if (currentToken == null) {
             return null;
         }
-        String type = CurrentToken.getStringData(TREE_TYPE);
-        String value = CurrentToken.getStringData(TREE_VALUE);
+        current++;
+        String type = currentToken.getStringData(TREE_TYPE);
+        String value = currentToken.getStringData(TREE_VALUE);
 
 
-        // System.out.println(CurrentToken);
+        // System.out.println(currentToken);
         switch (type) {
 
 
@@ -1053,33 +1193,33 @@ public class Compiler {
             case TREE_TOKEN_PAREN: {
 
                 // current--;
-                //  Tree.Node token = CurrentToken;
-                //CurrentToken = tokens.getNode(current - 1);
+                //  Tree.Node token = currentToken;
+                //currentToken = tokens.getNode(current - 1);
                 //because name comes before paren    (tokenLeft.getStringData(VALUE).matches("if|else|while")) &
                 //just check if it is a block
 
 
-                if (Objects.equals(CurrentToken.getStringData(TREE_VALUE), "(")) {
+                if (Objects.equals(currentToken.getStringData(TREE_VALUE), "(")) {
 
                     Tree.Node node = new Tree.Node(TREE_TYPE, AST_TYPE_EXPRESSION, TREE_VALUE, Compiler.getExpressionName(current));
-                    // CurrentToken = tokens.getNode(current);//now is right ...
+                    // currentToken = tokens.getNode(current);//now is right ...
 
-                    while (!Objects.equals(CurrentToken.getStringData(TREE_VALUE), ")")) {
-
+                    while (!Objects.equals(tokens.getNode(current).getStringData(TREE_VALUE), ")")) {
+                        // currentToken = tokens.getNode(current);
                         node.addChild(walk(tokens));
-                        CurrentToken = tokens.getNode(current - 1);
+                        //currentToken = tokens.getNode(current - 1);
                     }
                     //current++;
                     return node;
                 }
-                if (Objects.equals(CurrentToken.getStringData(TREE_VALUE), "{")) {
+                if (Objects.equals(currentToken.getStringData(TREE_VALUE), "{")) {
 
                     Tree.Node node = new Tree.Node(TREE_TYPE, AST_TYPE_CODE_BLOCK, TREE_VALUE, Compiler.getCodeBlockName(current));
-                    // CurrentToken = tokens.getNode(current);//now is right ...
+                    // currentToken = tokens.getNode(current);//now is right ...
 
-                    while (!Objects.equals(CurrentToken.getStringData(TREE_VALUE), "}")) {
+                    while (!Objects.equals(tokens.getNode(current).getStringData(TREE_VALUE), "}")) {
                         //amazing fix
-                        CurrentToken = tokens.getNode(current);
+                        // currentToken = tokens.getNode(current);
                         node.addChild(walk(tokens));
 
                     }
@@ -1106,36 +1246,36 @@ public class Compiler {
 
                 //is a var type declaration
                 if (value.matches(TYPE_PATTERN)) {
-                    // CurrentToken = tokens.getNode(++current);
+                    // currentToken = tokens.getNode(++current);
                     //  node = new Tree.Node(TREE_TYPE, AST_TYPE_TYPE_DECLARATION, TREE_VALUE, value);
 
 
-                    CurrentToken = walk(tokens);
+                    currentToken = walk(tokens);
 
-                    if (AST_TYPE_FUNCTION.equals(CurrentToken.getStringData(TREE_TYPE))) {
+                    if (AST_TYPE_FUNCTION.equals(currentToken.getStringData(TREE_TYPE))) {
 
-                        CurrentToken.putData(AST_FUNCTION_RETURN_TYPE, DataType.getDataType(value)).addChild(walk(tokens));
-                        CurrentToken.putData(AST_FUNCTION_DEFINED, false);
-                    } else if (AST_TYPE_VARIATION.equals(CurrentToken.getStringData(TREE_TYPE))) {
-                        CurrentToken.putData(AST_VARIATION_DATA_TYPE, DataType.getDataType(value));
+                        currentToken.putData(AST_FUNCTION_RETURN_TYPE, DataType.getDataType(value));//.addChild(walk(tokens));
+                        currentToken.putData(AST_FUNCTION_DEFINED, false);
+                    } else if (AST_TYPE_VARIATION.equals(currentToken.getStringData(TREE_TYPE))) {
+                        currentToken.putData(AST_VARIATION_DATA_TYPE, DataType.getDataType(value));
 
 
-                        //CurrentToken.addChild(walk(tokens));// must be a ()
+                        //currentToken.addChild(walk(tokens));// must be a ()
 
-                        //CurrentToken.addChild(walk(tokens));//must be a {}
-                    } else if (AST_TYPE_CLASS.equals(CurrentToken.getStringData(TREE_TYPE))) {
+                        //currentToken.addChild(walk(tokens));//must be a {}
+                    } else if (AST_TYPE_CLASS.equals(currentToken.getStringData(TREE_TYPE))) {
                         //current++;
                         break;
                     }
 
                     //current++;
-                    return CurrentToken;
+                    return currentToken;
 
                     //used by functon declition too  but i planto departch it
                 } else if (value.matches(CONTROL_PATTERN)) {
 
                     //is an "if" or "else"
-                    node = new Tree.Node(TREE_TYPE, AST_TYPE_CONTROL, TREE_VALUE, CurrentToken.getStringData(TREE_VALUE));
+                    node = new Tree.Node(TREE_TYPE, AST_TYPE_CONTROL, TREE_VALUE, currentToken.getStringData(TREE_VALUE));
 
 
                     boolean wantExpression = false;
@@ -1186,19 +1326,33 @@ public class Compiler {
                     return node;
 
 
+                } else if ("new".equals(value)) {
+                    currentToken = walk(tokens);
+
+                    if (AST_TYPE_FUNCTION.equals(currentToken.getStringData(TREE_TYPE))) {
+
+                        currentToken.putData(AST_FUNCTION_RETURN_TYPE, AST_FUNCTION_RETURN_NEW_OBJECT);
+                        currentToken.putData(AST_FUNCTION_DEFINED, true);
+                    }
+                    return currentToken;
+
                 } else if (value.matches(KEY_WORD_PATTERN)) {
+
+
+                    //little fix
+
 
                     KEY_WORDS_RECORDER.clear();
                     // KEY_WORDS_RECORDER.add(tokenWithName.getStringData(TREE_VALUE));
-                    while (CurrentToken.getStringData(TREE_VALUE).matches(KEY_WORD_PATTERN)) {
-                        KEY_WORDS_RECORDER.add(CurrentToken.getStringData(TREE_VALUE));
-                        CurrentToken = CurrentToken.right;
+                    while (currentToken.getStringData(TREE_VALUE).matches(KEY_WORD_PATTERN)) {
+                        KEY_WORDS_RECORDER.add(currentToken.getStringData(TREE_VALUE));
+                        currentToken = currentToken.right;
                         current++;
                     }
                     current = current - 1;
-                    CurrentToken = walk(tokens).putData(AST_VAR_FUNC_CLASS_KEYWORD, KEY_WORDS_RECORDER);
+                    currentToken = walk(tokens).putData(AST_VAR_FUNC_CLASS_KEYWORD, KEY_WORDS_RECORDER);
 
-                    return CurrentToken;
+                    return currentToken;
 
 
                 } else {
@@ -1206,13 +1360,22 @@ public class Compiler {
                     //is a func or var   or a class
 
                     //current Token is future token
-                    if (Objects.equals(CurrentToken.right.getStringData(TREE_TYPE), TREE_TOKEN_PAREN) && Objects.equals(CurrentToken.right.getStringData(TREE_VALUE), "(")) {
+                    if (Objects.equals(currentToken.right.getStringData(TREE_TYPE), TREE_TOKEN_PAREN) && Objects.equals(currentToken.right.getStringData(TREE_VALUE), "(")) {
                         node = new Tree.Node(TREE_TYPE, AST_TYPE_FUNCTION, TREE_VALUE, value);
 
+
                         node.addChild(walk(tokens));
+                        node.putData(AST_FUNCTION_DEFINED, true);
+                        if ("{".equals(tokens.getNode(current++).getStringData(Compiler.TREE_VALUE))) {
+                            node.addChild(walk(tokens));
+                            node.putData(AST_FUNCTION_DEFINED, false);
+
+                        } else {
+                            node.addChild(walk(tokens));
+                        }
 
                         //func
-//                        CurrentToken = tokens.getNode(++current);
+//                        currentToken = tokens.getNode(++current);
 //
 //                        //todo expression stands for args
 //                        Tree.Node exepressionNode = new Tree.Node(TREE_TYPE, AST_TYPE_EXPRESSION, TREE_VALUE, AST_EXPRESSION_AS_ARGS);
@@ -1220,26 +1383,26 @@ public class Compiler {
 //
 //
 //
-//                        while ((!Objects.equals(CurrentToken.getStringData(TREE_TYPE), TREE_TOKEN_PAREN)) || (Objects.equals(CurrentToken.getStringData(TREE_TYPE), TREE_TOKEN_PAREN)) & !Objects.equals(CurrentToken.getStringData(TREE_VALUE), ")")) {
+//                        while ((!Objects.equals(currentToken.getStringData(TREE_TYPE), TREE_TOKEN_PAREN)) || (Objects.equals(currentToken.getStringData(TREE_TYPE), TREE_TOKEN_PAREN)) & !Objects.equals(currentToken.getStringData(TREE_VALUE), ")")) {
 //                            node.addChild(walk(tokens));
-//                            CurrentToken = tokens.getNode(current);
+//                            currentToken = tokens.getNode(current);
 //                        }
 //
 //                        current++;
-                        node.putData(AST_FUNCTION_DEFINED, true);
+
                         return node;
 
-                    } else if (Objects.equals(CurrentToken.right.getStringData(TREE_TYPE), TREE_TOKEN_PAREN) && Objects.equals(CurrentToken.right.getStringData(TREE_VALUE), "{")) {
+                    } else if (Objects.equals(currentToken.right.getStringData(TREE_TYPE), TREE_TOKEN_PAREN) && Objects.equals(currentToken.right.getStringData(TREE_VALUE), "{")) {
                         node = new Tree.Node(TREE_TYPE, AST_TYPE_CLASS, TREE_VALUE, value);
                         //current++;
                         node.addChild(walk(tokens));
 //                        //todo extends
 //                        //func
-//                        CurrentToken = tokens.getNode(++current);
+//                        currentToken = tokens.getNode(++current);
 //
-//                        while ((!Objects.equals(CurrentToken.getStringData(TREE_TYPE), TREE_TOKEN_PAREN)) || (Objects.equals(CurrentToken.getStringData(TREE_TYPE), TREE_TOKEN_PAREN)) & !Objects.equals(CurrentToken.getStringData(TREE_VALUE), "}")) {
+//                        while ((!Objects.equals(currentToken.getStringData(TREE_TYPE), TREE_TOKEN_PAREN)) || (Objects.equals(currentToken.getStringData(TREE_TYPE), TREE_TOKEN_PAREN)) & !Objects.equals(currentToken.getStringData(TREE_VALUE), "}")) {
 //                            node.addChild(walk(tokens));
-//                            CurrentToken = tokens.getNode(current);
+//                            currentToken = tokens.getNode(current);
 //                        }
 //                        current++;
 
@@ -1394,7 +1557,46 @@ public class Compiler {
 
         //todo how to fin the nearest function not add(obj) but add(num)   as long as
 
-        static Object[] getReturnDataType(String Shortid, DataType[] argTypes) {
+        static Object[] getReturnDataType(String name, DataType[] argTypes) {
+
+
+            String[] findAcc = name.split("\\.");
+            if (findAcc.length != 0) {
+                int gotFound = 0;
+
+                String findAccording = findAcc[findAcc.length - 1];
+
+                Tree.Node function = FunctionTree.findNodeReset().findNode(Compiler.TREE_VALUE, findAccording);
+                while (function != null) {
+                    if (argTypes.length != function.children.size()) {
+
+                        continue;
+                    }
+                    boolean pass = false;
+                    int i = 0;
+                    for (DataType argType : argTypes) {
+                        if (!argType.isInstanceOf((function.getFirstChild().getChild(i).getData(Compiler.AST_VARIATION_DATA_TYPE))) && !argType.isInstanceOf((function.getFirstChild().getChild(i).getData(Compiler.AST_FUNCTION_RETURN_TYPE)))) {
+                            pass = true;
+
+                        }
+                        i++;
+
+                    }
+                    if (pass) {
+                        function = FunctionTree.findNextNode(Compiler.TREE_VALUE, findAccording);
+                    } else {
+                        gotFound++;
+                    }
+
+
+                }
+                if (gotFound == 1) {
+                    return new Object[]{function.getData(Compiler.AST_FUNCTION_RETURN_TYPE), function.getData(FUNC_ID)};
+                }
+            }
+
+
+            //todo here it comes
 
 
             // todo order user added             other class          native
@@ -1405,10 +1607,13 @@ public class Compiler {
 
             //todo maybe I can use a different way to end this
 
-            Tree.Node function = FunctionTree.findNodeReset().findNode(FUNC_SHORT_ID, Shortid);
 
             //  Tree.Node nextFound=FunctionTree.findNodeReset().findNextNode(FUNC_SHORT_ID, Shortid) ;
 
+
+            //maybe stable
+
+            Tree.Node function = FunctionTree.findNodeReset().findNode(FUNC_SHORT_ID, name);
             while (function != null) {
                 if (argTypes.length != function.children.size()) {
 
@@ -1417,7 +1622,7 @@ public class Compiler {
                 boolean pass = false;
                 int i = 0;
                 for (DataType argType : argTypes) {
-                    if (!argType.isInstanceOf((function.getFirstChild().getChild(i).getData(Compiler.AST_VARIATION_DATA_TYPE))) && !argType.isInstanceOf((function.getChild(i).getData(Compiler.AST_FUNCTION_RETURN_TYPE)))) {
+                    if (!argType.isInstanceOf((function.getFirstChild().getChild(i).getData(Compiler.AST_VARIATION_DATA_TYPE))) && !argType.isInstanceOf((function.getFirstChild().getChild(i).getData(Compiler.AST_FUNCTION_RETURN_TYPE)))) {
                         pass = true;
 
                     }
@@ -1425,7 +1630,7 @@ public class Compiler {
 
                 }
                 if (pass) {
-                    function = FunctionTree.findNextNode(FUNC_ID, Shortid);
+                    function = FunctionTree.findNextNode(FUNC_ID, name);
                 } else {
                     return new Object[]{function.getData(Compiler.AST_FUNCTION_RETURN_TYPE), function.getData(FUNC_ID)};
                 }
@@ -1471,8 +1676,13 @@ public class Compiler {
             return new DataType(name).setFather(OBJECT);
         }
 
-        static DataType getDataType(String name) {
-            return MAP.get(name);
+        public static DataType getDataType(String name) {
+            if (MAP.containsKey(name)) {
+                return MAP.get(name);
+            } else {
+                return createDataType(name);
+            }
+
         }
 
         //terrible fix
