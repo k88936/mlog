@@ -2,10 +2,7 @@ package com.k.compiler;
 
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Objects;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import static com.k.compiler.Compiler.Library.functionMap;
@@ -267,8 +264,8 @@ public class Compiler {
             if (fc.getData(AST_VAR_FUNC_CLASS_KEYWORD) != null) {
 
                 HashSet hp = (HashSet) fc.getData(AST_VAR_FUNC_CLASS_KEYWORD);
-                if (hp.contains("hidden")) {
-                    continue;
+                if (hp.contains("hidden") || hp.contains("private")) {
+                    //continue;
                 }
 
             }
@@ -313,8 +310,17 @@ public class Compiler {
 //                            name = callerSet[1];
 //                        }
 
+                        Object seeminglyAList = dataFromChildren.get(0);
+                        ;
+                        if (ArrayList.class.isInstance(seeminglyAList)) {
+                            ArrayList List = (ArrayList<Object>) seeminglyAList;
+                            dataFromChildren.remove(0);
+                            for (int i = 0; i < List.size(); i++) {
+                                dataFromChildren.add(i, List.get(i));
+                            }
+                        }
 
-                        dataFromChildren = (ArrayList<Object>) dataFromChildren.get(0);
+                        //dataFromChildren = (ArrayList<Object>) null;
 
                         DataType[] argTypes = new DataType[dataFromChildren.size()];
                         for (int i = 0; i < dataFromChildren.size(); i++) {
@@ -395,8 +401,13 @@ public class Compiler {
 
 
         // register variation all obj except args
-        for (Tree.Node var : function.getFirstChild().children) {
+        ArrayList<Tree.Node> children = function.getFirstChild().children;
+        String[] args = new String[children.size()];
+        for (int i = 0; i < children.size(); i++) {
+            Tree.Node var = children.get(i);
+            args[i] = var.getStringData(Compiler.TREE_VALUE);
             variationMap.put(var.getStringData(Compiler.TREE_VALUE), (DataType) var.getData(Compiler.AST_VARIATION_DATA_TYPE));
+
         }
 
         //todo maybe none-useful like this
@@ -599,11 +610,9 @@ public class Compiler {
         }.visit(function.getLastChild());
 
 
-        String[] args = new String[function.children.size()];
 
-        for (int i = 0; i < function.children.size(); i++) {
-            args[i] = function.children.get(i).getStringData(Compiler.TREE_VALUE);
-        }
+
+
         //todo
 
 
@@ -614,6 +623,7 @@ public class Compiler {
 
     }
 
+    @Deprecated
     static Tree preParser(Tree tokens, final String part) {
 
         final Tree partOfTokens = new Tree();
@@ -656,7 +666,7 @@ public class Compiler {
 
     static Tree tokenizer(String input) throws Exception {
 
-        //input=input;
+        input = input + '\n';
         int current = 0;
 
 
@@ -793,6 +803,7 @@ public class Compiler {
 
 
 //a new tree is created
+        tokens.addNode(new Tree.Node(TREE_TYPE, "", TREE_VALUE, ""));
         while (current < tokens.root.children.size()) {
             ast.addNode(Compiler.walk(tokens));
         }
@@ -1019,6 +1030,7 @@ public class Compiler {
         String value = CurrentToken.getStringData(TREE_VALUE);
 
 
+        // System.out.println(CurrentToken);
         switch (type) {
 
 
@@ -1045,15 +1057,17 @@ public class Compiler {
                 //CurrentToken = tokens.getNode(current - 1);
                 //because name comes before paren    (tokenLeft.getStringData(VALUE).matches("if|else|while")) &
                 //just check if it is a block
+
+
                 if (Objects.equals(CurrentToken.getStringData(TREE_VALUE), "(")) {
 
                     Tree.Node node = new Tree.Node(TREE_TYPE, AST_TYPE_EXPRESSION, TREE_VALUE, Compiler.getExpressionName(current));
                     // CurrentToken = tokens.getNode(current);//now is right ...
 
-                    while (CurrentToken != null && !Objects.equals(CurrentToken.getStringData(TREE_VALUE), ")")) {
+                    while (!Objects.equals(CurrentToken.getStringData(TREE_VALUE), ")")) {
 
                         node.addChild(walk(tokens));
-                        CurrentToken = tokens.getNode(current);
+                        CurrentToken = tokens.getNode(current - 1);
                     }
                     //current++;
                     return node;
@@ -1063,10 +1077,11 @@ public class Compiler {
                     Tree.Node node = new Tree.Node(TREE_TYPE, AST_TYPE_CODE_BLOCK, TREE_VALUE, Compiler.getCodeBlockName(current));
                     // CurrentToken = tokens.getNode(current);//now is right ...
 
-                    while (CurrentToken != null && !Objects.equals(CurrentToken.getStringData(TREE_VALUE), "}")) {
-
-                        node.addChild(walk(tokens));
+                    while (!Objects.equals(CurrentToken.getStringData(TREE_VALUE), "}")) {
+                        //amazing fix
                         CurrentToken = tokens.getNode(current);
+                        node.addChild(walk(tokens));
+
                     }
                     //current++;
                     return node;
@@ -1240,11 +1255,11 @@ public class Compiler {
             }
 
 
-            default: {
-
-                throw new Exception(type);
-                //break;
-            }
+//            default: {
+//
+//                throw new Exception(type);
+//                //break;
+//            }
 
 
         }

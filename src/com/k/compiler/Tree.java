@@ -73,7 +73,7 @@ public class Tree {
     }
 
 
-    public String toStringgg() {
+    public String toString() {
         return this.root.toString();
 
         // return "";
@@ -206,7 +206,7 @@ public class Tree {
         }
 
         Node findNextChild(String key, Object value) {
-            for (findIndex = 0; findIndex < children.size(); findIndex++) {
+            for (; findIndex < children.size(); findIndex++) {
                 Node node = children.get(findIndex);
                 if (node.data.containsKey(key) && node.data.get(key).equals(value)) {
                     return node;
@@ -347,6 +347,9 @@ public class Tree {
                     char[] chs = new char[level * 4];
                     for (int i = 0; i < level * 4; i++) {
                         chs[i] = '-';
+                        if (i % 4 == 0) {
+                            chs[i] = '=';
+                        }
                     }
 
                     return new String(chs);

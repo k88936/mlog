@@ -1,0 +1,32 @@
+//java
+
+public class Processor_04 {
+
+
+
+    public static void main(String[] args) {
+        x=   1+1
+    }
+
+
+    private class Math{
+        //TODO on building
+    }
+
+    private static num add(num a,num b){
+
+        native("add c a b",num a,num b,num c)
+        return num c;
+    }
+
+
+    private static  num set(obj local,num target){
+
+
+        native("set local target",num target,num local);
+
+        return num local;
+    }
+
+
+}

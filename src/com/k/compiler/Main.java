@@ -12,7 +12,7 @@ public class Main {
 
     static {
         try {
-            code = new String(Files.readAllBytes(Paths.get("MLogBin/native.jml")));
+            code = new String(Files.readAllBytes(Paths.get("MLogBin/processor_04.Jmlog")));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -21,20 +21,18 @@ public class Main {
     public static void main(String[] args) throws Exception {
 
         Tree jast = Compiler.parser(Compiler.tokenizer(code));
+        //System.out.println(jast);
         Tree jst = Compiler.loader(jast);
-
-//System.out.println(jst);
-
-
         System.out.println("-------------------------------------------------");
-
-
+////
+//System.out.println(jst);
+////
+//
+//
+//
+//
         Compiler.analyzing(jst);
-
-
-
-
-
+//
 
 
 //        String code;
